@@ -1,0 +1,2338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NeuroLearn AI — Adaptive Learning Studio</title>
+  <meta name="description" content="AI-powered adaptive learning platform. Multi-modal concept explanations, interactive knowledge graphs, Feynman technique coaching, adaptive quizzes, and personalized study roadmaps." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+  <style>
+    /* ══════════════════════════════════════
+       RESET & PREMIUM DESIGN SYSTEM
+    ══════════════════════════════════════ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      /* Base surfaces — deep warm graphite */
+      --bg-base:       #080507;
+      --bg-base-2:     #0f080c;
+      --bg-surface:    #160c12;
+      --bg-surface-2:  #1e1118;
+      --bg-card:       linear-gradient(160deg, rgba(255,220,200,0.045) 0%, rgba(255,180,150,0.010) 100%);
+      --bg-card-solid: rgba(18,10,14,0.80);
+      --bg-card-hov:   linear-gradient(160deg, rgba(236,72,120,0.10) 0%, rgba(217,119,6,0.06) 100%);
+
+      /* Borders with warmth */
+      --border:        rgba(255,200,180,0.09);
+      --border-hi:     rgba(255,210,190,0.20);
+      --border-acc:    rgba(236,72,120,0.55);
+      --border-glow:   rgba(236,72,120,0.35);
+
+      /* Rose primary */
+      --violet:        #e11d6a;
+      --violet-b:      #9f1239;
+      --violet-l:      #fda4b5;
+      --violet-ll:     #ffe4ec;
+      --violet-dim:    rgba(225,29,106,0.14);
+      --violet-glow:   rgba(225,29,106,0.28);
+
+      /* Gold secondary */
+      --cyan:          #d97706;
+      --cyan-b:        #92400e;
+      --cyan-l:        #fde68a;
+      --cyan-dim:      rgba(217,119,6,0.12);
+
+      /* Supporting palette */
+      --pink:          #f43f5e;
+      --pink-l:        #fecdd3;
+      --emerald:       #10b981;
+      --emerald-l:     #a7f3d0;
+      --amber:         #f59e0b;
+      --red:           #ef4444;
+      --red-l:         #fca5a5;
+
+      /* Typography — warm whites */
+      --text-1:        #fff5f7;
+      --text-2:        #c9a8b0;
+      --text-3:        #7a5060;
+      --text-4:        #3d1f28;
+
+      /* Gradients — rose → gold luxury */
+      --grad-main:     linear-gradient(135deg, #e11d6a 0%, #c2185b 40%, #d97706 100%);
+      --grad-vivid:    linear-gradient(135deg, #f43f5e 0%, #e11d6a 45%, #f59e0b 100%);
+      --grad-warm:     linear-gradient(135deg, #fb7185 0%, #e11d6a 50%, #d97706 100%);
+      --grad-card:     linear-gradient(160deg, rgba(255,200,180,0.045) 0%, rgba(255,160,130,0.010) 100%);
+      --grad-sidebar:  linear-gradient(180deg, rgba(40,12,22,0.90) 0%, rgba(14,6,10,0.94) 100%);
+
+      /* Radii */
+      --r-sm: 8px; --r-md: 14px; --r-lg: 20px; --r-xl: 28px; --r-2xl: 36px;
+
+      /* Shadows — warm-tinted depth */
+      --shadow-card:   0 4px 6px rgba(0,0,0,0.45), 0 12px 28px rgba(0,0,0,0.40), inset 0 1px 0 rgba(255,210,190,0.10);
+      --shadow-hov:    0 8px 16px rgba(0,0,0,0.55), 0 24px 52px rgba(0,0,0,0.48), inset 0 1px 0 rgba(255,210,190,0.14);
+      --shadow-btn:    0 4px 15px rgba(225,29,106,0.50), 0 1px 0 rgba(255,210,190,0.18) inset;
+      --shadow-btn-hov:0 8px 30px rgba(225,29,106,0.70), 0 1px 0 rgba(255,220,200,0.22) inset;
+      --glow-violet:   0 0 40px rgba(225,29,106,0.30), 0 0 80px rgba(225,29,106,0.12);
+      --glow-cyan:     0 0 40px rgba(217,119,6,0.25);
+      --t: all 0.28s cubic-bezier(.4,0,.2,1);
+    }
+    html, body {
+      height: 100vh; height: 100dvh; width: 100vw;
+      margin: 0; padding: 0;
+      overflow: hidden; /* Lock browser window from ever scrolling */
+      overscroll-behavior: contain;
+      background: var(--bg-base);
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      color: var(--text-1);
+    }
+    body {
+      background-image:
+        radial-gradient(ellipse 80% 60% at 0% 0%, rgba(225,29,106,0.14) 0%, transparent 55%),
+        radial-gradient(ellipse 70% 60% at 100% 100%, rgba(217,119,6,0.11) 0%, transparent 55%),
+        radial-gradient(ellipse 50% 50% at 50% 40%, rgba(244,63,94,0.05) 0%, transparent 60%);
+    }
+
+    /* Subtle noise grain overlay for premium texture */
+    body::after {
+      content:''; position:fixed; inset:0; pointer-events:none; z-index:0; opacity:.028;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size: 200px 200px;
+    }
+
+    /* Ambient slow-drifting orbs */
+    body::before {
+      content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
+      background:
+        radial-gradient(ellipse 55% 45% at 8% 12%, rgba(225,29,106,0.18) 0%, transparent 55%),
+        radial-gradient(ellipse 50% 45% at 92% 88%, rgba(217,119,6,0.14) 0%, transparent 55%),
+        radial-gradient(ellipse 40% 35% at 70% 20%, rgba(244,63,94,0.08) 0%, transparent 50%),
+        radial-gradient(ellipse 35% 35% at 20% 80%, rgba(194,24,91,0.10) 0%, transparent 50%);
+      animation: orb 28s ease-in-out infinite alternate;
+    }
+    @keyframes orb {
+      0%   { transform: translate(0,0) scale(1); }
+      33%  { transform: translate(-2%, 1%) scale(1.03); }
+      66%  { transform: translate(1.5%, -2%) scale(0.98); }
+      100% { transform: translate(-3%,-1.5%) scale(1.05); }
+    }
+
+    /* ══════════════════════════════════════
+       SVG ICON UTILITIES
+    ══════════════════════════════════════ */
+    .ico { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; display: inline-block; vertical-align: middle; flex-shrink: 0; }
+    .ico-lg { width: 24px; height: 24px; }
+    .ico-xl { width: 32px; height: 32px; }
+
+    /* ══════════════════════════════════════
+       LAYOUT
+    ══════════════════════════════════════ */
+    .app { display:grid; grid-template-rows:68px 1fr; grid-template-columns:270px 1fr; height:100vh; height:100dvh; width:100vw; overflow:hidden; position:relative; z-index:1; }
+
+    /* ══════════════════════════════════════
+       HEADER
+    ══════════════════════════════════════ */
+    .hdr {
+      grid-column:1/-1; display:flex; align-items:center; justify-content:space-between;
+      padding:0 28px;
+      background: linear-gradient(90deg, rgba(20,8,14,0.95) 0%, rgba(12,5,8,0.95) 100%);
+      backdrop-filter:blur(28px) saturate(180%);
+      border-bottom:1px solid rgba(255,200,180,0.08);
+      box-shadow: 0 1px 0 rgba(255,200,180,0.05), 0 4px 32px rgba(0,0,0,0.5);
+      position:sticky; top:0; z-index:200;
+    }
+    /* Subtle header top accent line */
+    .hdr::before {
+      content:''; position:absolute; top:0; left:0; right:0; height:1px;
+      background: linear-gradient(90deg, transparent 0%, rgba(225,29,106,0.85) 30%, rgba(217,119,6,0.85) 70%, transparent 100%);
+    }
+    .logo { display:flex; align-items:center; gap:14px; position:relative; }
+    .logo-img-wrap {
+      width:46px; height:46px; border-radius:14px; overflow:hidden;
+      background:var(--grad-vivid); padding:2px;
+      box-shadow: 0 0 0 1px rgba(255,220,200,0.18), 0 0 24px rgba(225,29,106,.55), 0 0 60px rgba(225,29,106,.18);
+      animation:float 4s ease-in-out infinite; flex-shrink:0;
+    }
+    .logo-img-wrap img { width:100%; height:100%; object-fit:cover; border-radius:12px; }
+    @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-3px)} }
+    .logo-name {
+      font-size:21px; font-weight:900; letter-spacing:-0.03em;
+      background:var(--grad-vivid); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+      filter: drop-shadow(0 0 20px rgba(253,164,181,0.4));
+    }
+    .logo-tag  { font-size:10px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:rgba(201,168,176,0.8); margin-top:1px; }
+
+    .header-actions { display:flex; align-items:center; gap:12px; }
+
+    .api-pill {
+      display:flex; align-items:center; gap:9px; padding:9px 20px;
+      background: linear-gradient(135deg, rgba(255,220,200,0.065) 0%, rgba(255,180,150,0.025) 100%);
+      border:1px solid rgba(255,200,180,0.12);
+      box-shadow: inset 0 1px 0 rgba(255,220,200,0.10), 0 4px 12px rgba(0,0,0,0.3);
+      border-radius:100px; font-size:13px; font-weight:600; color:var(--text-2);
+      cursor:pointer; transition:var(--t); user-select:none;
+    }
+    .api-pill:hover { border-color:rgba(225,29,106,0.5); color:var(--text-1); transform:translateY(-1px); box-shadow: inset 0 1px 0 rgba(255,220,200,0.14), 0 6px 20px rgba(0,0,0,0.35), 0 0 20px rgba(225,29,106,0.2); }
+    .api-dot { width:8px; height:8px; border-radius:50%; background:var(--amber); transition:var(--t); }
+    .api-dot.on { background:var(--emerald); box-shadow:0 0 10px var(--emerald), 0 0 20px rgba(16,185,129,0.4); animation:blink 2.4s ease-in-out infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+    /* ══════════════════════════════════════
+       SIDEBAR
+    ══════════════════════════════════════ */
+    .sidebar {
+      padding:22px 14px;
+      background: var(--grad-sidebar);
+      backdrop-filter:blur(20px) saturate(160%);
+      border-right:1px solid rgba(255,200,180,0.06);
+      box-shadow: inset -1px 0 0 rgba(255,200,180,0.04), 4px 0 30px rgba(0,0,0,0.3);
+      overflow-y:auto; overflow-x:hidden;
+      overscroll-behavior:contain;
+      height:calc(100vh - 68px); height:calc(100dvh - 68px);
+    }
+    /* Custom slim scrollbar for sidebar */
+    .sidebar::-webkit-scrollbar { width:3px; }
+    .sidebar::-webkit-scrollbar-track { background:transparent; }
+    .sidebar::-webkit-scrollbar-thumb { background:rgba(225,29,106,0.25); border-radius:4px; }
+    .sidebar::-webkit-scrollbar-thumb:hover { background:rgba(225,29,106,0.5); }
+    .sec-lbl { font-size:10px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; color:var(--text-3); padding:0 12px; margin:4px 0 10px; }
+    .nav-item {
+      display:flex; align-items:center; gap:12px; padding:11px 14px; border-radius:var(--r-md);
+      cursor:pointer; transition:var(--t); margin-bottom:3px; border:1px solid transparent;
+      color:var(--text-2); font-size:13.5px; font-weight:500; position:relative;
+    }
+    .nav-item:hover {
+      background: linear-gradient(135deg, rgba(225,29,106,0.12) 0%, rgba(217,119,6,0.05) 100%);
+      border-color:rgba(225,29,106,0.20); color:var(--text-1); transform:translateX(3px);
+      box-shadow: inset 0 1px 0 rgba(255,220,200,0.07);
+    }
+    .nav-item.active {
+      background: linear-gradient(135deg, rgba(225,29,106,0.24) 0%, rgba(194,24,91,0.14) 60%, rgba(217,119,6,0.08) 100%);
+      border-color:rgba(253,164,181,0.35);
+      color:var(--text-1); font-weight:700;
+      box-shadow: inset 0 1px 0 rgba(255,220,200,0.12), 0 4px 16px rgba(225,29,106,0.18);
+    }
+    .nav-item.active::before {
+      content:''; position:absolute; left:0; top:20%; bottom:20%; width:3px;
+      background:var(--grad-vivid); border-radius:0 4px 4px 0;
+      box-shadow:0 0 12px rgba(225,29,106,0.7);
+    }
+    .nav-item.active .ico { stroke:var(--violet-l); filter:drop-shadow(0 0 6px rgba(253,164,181,0.8)); }
+
+    .topic-box { margin-top:22px; padding-top:22px; border-top:1px solid var(--border); }
+    .topic-ta {
+      width:100%; padding:11px 13px; background:var(--bg-card); border:1px solid var(--border);
+      border-radius:var(--r-md); color:var(--text-1); font-size:13px; font-family:'Inter',sans-serif;
+      line-height:1.5; outline:none; resize:none; transition:var(--t);
+    }
+    .topic-ta:focus { border-color:var(--border-acc); background:rgba(225,29,106,.08); box-shadow:0 0 0 3px rgba(225,29,106,.12); }
+    .topic-ta::placeholder { color:var(--text-3); font-size:12.5px; }
+
+    .btn-topic {
+      width:100%; margin-top:10px; padding:12px; border:none;
+      background: linear-gradient(135deg, #e11d6a 0%, #c2185b 50%, #d97706 100%);
+      border-radius:var(--r-md); color:#fff; font-size:13.5px; font-weight:700;
+      font-family:'Inter',sans-serif; cursor:pointer; transition:var(--t);
+      display:flex; align-items:center; justify-content:center; gap:8px; overflow:hidden; position:relative;
+      box-shadow: 0 4px 15px rgba(225,29,106,0.45), inset 0 1px 0 rgba(255,220,200,0.25);
+    }
+    .btn-topic::before { content:''; position:absolute; inset:0; background:linear-gradient(180deg,rgba(255,255,255,0.18) 0%,transparent 60%); pointer-events:none; }
+    .btn-topic::after { content:''; position:absolute; inset:0; background:linear-gradient(135deg,rgba(255,255,255,.22),transparent); opacity:0; transition:var(--t); }
+    .btn-topic:hover::after { opacity:1; }
+    .btn-topic:hover { transform:translateY(-2px); box-shadow:0 12px 32px rgba(225,29,106,.65), inset 0 1px 0 rgba(255,220,200,0.25); }
+    .btn-topic:active { transform:translateY(0); }
+    .btn-topic:disabled { opacity:.5; cursor:not-allowed; transform:none !important; box-shadow:none; }
+
+    /* ══════════════════════════════════════
+       MAIN + PANELS
+    ══════════════════════════════════════ */
+    .main {
+      padding:24px 32px 40px;
+      overflow-y:auto; overflow-x:hidden;
+      height:calc(100vh - 68px); height:calc(100dvh - 68px);
+      overscroll-behavior:contain;
+    }
+    /* Custom slim scrollbar for main panel */
+    .main::-webkit-scrollbar { width:5px; }
+    .main::-webkit-scrollbar-track { background:transparent; }
+    .main::-webkit-scrollbar-thumb { background:rgba(225,29,106,0.2); border-radius:6px; transition:background 0.2s; }
+    .main::-webkit-scrollbar-thumb:hover { background:rgba(225,29,106,0.5); }
+    .panel { display:none; animation:panelIn .35s cubic-bezier(.4,0,.2,1); }
+    .panel.active { display:block; }
+    @keyframes panelIn { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+    .panel-hd { margin-bottom:20px; }
+    .panel-title {
+      font-size:34px; font-weight:900; letter-spacing:-0.03em; line-height:1.1; margin-bottom:8px;
+      background: var(--grad-vivid);
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+      filter: drop-shadow(0 0 24px rgba(225,29,106,0.35));
+    }
+    .panel-sub { color:var(--text-2); font-size:14.5px; line-height:1.6; }
+
+    /* Cards — premium layered glass */
+    .card {
+      background: linear-gradient(160deg, rgba(255,220,200,0.055) 0%, rgba(20,10,14,0.75) 100%);
+      border:1px solid rgba(255,200,180,0.10);
+      box-shadow: var(--shadow-card);
+      border-radius:var(--r-lg); padding:24px; transition:var(--t); backdrop-filter:blur(18px);
+    }
+    .card:hover { border-color:rgba(253,164,181,0.30); box-shadow:var(--shadow-hov), 0 0 40px rgba(225,29,106,0.14); }
+
+    /* Primary Buttons — with inner shine */
+    .btn-p {
+      padding:12px 28px;
+      background: linear-gradient(135deg, #e11d6a 0%, #c2185b 45%, #d97706 100%);
+      border:none; border-radius:var(--r-md);
+      color:#fff; font-size:13.5px; font-weight:700; font-family:'Inter',sans-serif;
+      cursor:pointer; transition:var(--t); white-space:nowrap;
+      display:inline-flex; align-items:center; justify-content:center; text-align:center; gap:8px; position:relative; overflow:hidden;
+      box-shadow: var(--shadow-btn);
+    }
+    .btn-p::before { content:''; position:absolute; inset:0; background:linear-gradient(180deg,rgba(255,255,255,0.18) 0%,transparent 55%); pointer-events:none; border-radius:var(--r-md); }
+    .btn-p:hover { transform:translateY(-2px); box-shadow:var(--shadow-btn-hov); filter:brightness(1.08); }
+    .btn-p:active { transform:translateY(0); filter:brightness(0.95); }
+    .btn-p:disabled { opacity:.5; cursor:not-allowed; transform:none !important; box-shadow:none; filter:none; }
+    
+    .btn-o {
+      padding:11px 22px;
+      background: linear-gradient(160deg, rgba(255,220,200,0.05) 0%, rgba(255,180,150,0.01) 100%);
+      border:1px solid rgba(255,200,180,0.12);
+      box-shadow: inset 0 1px 0 rgba(255,220,200,0.08), 0 2px 8px rgba(0,0,0,0.25);
+      border-radius:var(--r-md); color:var(--text-2); font-size:13px; font-weight:600;
+      font-family:'Inter',sans-serif; cursor:pointer; transition:var(--t);
+      display:inline-flex; align-items:center; gap:7px;
+    }
+    .btn-o:hover { border-color:rgba(253,164,181,0.4); color:var(--text-1); transform:translateY(-1px); box-shadow: inset 0 1px 0 rgba(255,220,200,0.12), 0 4px 14px rgba(0,0,0,0.3); }
+
+    /* Chip */
+    .chip {
+      display:inline-flex; align-items:center; gap:6px; padding:6px 16px; border-radius:100px;
+      font-size:12.5px; font-weight:700;
+      background: linear-gradient(135deg, rgba(225,29,106,0.22) 0%, rgba(217,119,6,0.14) 100%);
+      border:1px solid rgba(253,164,181,0.35);
+      color:var(--violet-l);
+      box-shadow: inset 0 1px 0 rgba(255,220,200,0.10);
+    }
+
+    /* AI output container — premium layered glass */
+    .ai-out {
+      background: linear-gradient(160deg, rgba(30,12,20,0.78) 0%, rgba(14,6,10,0.85) 100%);
+      border:1px solid rgba(255,200,180,0.10);
+      box-shadow: var(--shadow-card), inset 0 0 60px rgba(225,29,106,0.04);
+      border-radius:var(--r-xl); padding:34px; min-height:220px; position:relative; overflow:hidden; backdrop-filter:blur(20px);
+    }
+    /* Animated gradient top bar */
+    .ai-out::before {
+      content:''; position:absolute; top:0; left:0; right:0; height:3px;
+      background: linear-gradient(90deg, #e11d6a, #f43f5e, #d97706, #f59e0b, #e11d6a);
+      background-size: 300% 100%;
+      animation: gradShift 4s linear infinite;
+    }
+    @keyframes gradShift { 0%{background-position:0% 0%} 100%{background-position:300% 0%} }
+    /* Inner top-left corner highlight */
+    .ai-out::after {
+      content:''; position:absolute; top:3px; left:0; right:0; height:60px;
+      background:linear-gradient(180deg, rgba(255,220,200,0.03) 0%, transparent 100%);
+      pointer-events:none;
+    }
+    .ai-out h1 { font-size:20px; font-weight:900; letter-spacing:-0.02em; margin:0 0 16px; padding-bottom:10px; border-bottom:1px solid rgba(255,200,180,0.12); background:linear-gradient(135deg, #fff5f7 0%, #fda4b5 40%, #d97706 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+    .ai-out h2 { font-size:16.5px; font-weight:800; color:#fda4b5; margin:22px 0 10px; padding-bottom:6px; border-bottom:1px solid rgba(225,29,106,0.18); }
+    .ai-out h3 { font-size:15px; font-weight:800; color:#fde68a; margin:18px 0 10px; }
+    .ai-out p  { color:var(--text-2); line-height:1.7; margin-bottom:12px; font-size:13.5px; }
+    .ai-out ul,.ai-out ol { color:var(--text-2); padding-left:20px; margin-bottom:14px; font-size:13.5px; line-height:1.75; }
+    .ai-out li { margin-bottom:7px; }
+    .ai-out li::marker { color:var(--violet-l); }
+    .ai-out li strong { color:#ffffff; font-weight:700; }
+    .ai-out hr { border:none; height:1px; background:linear-gradient(90deg, transparent, rgba(255,200,180,0.14), transparent); margin:22px 0; }
+    .ai-out code { background:rgba(225,29,106,.14); border:1px solid rgba(225,29,106,.28); border-radius:6px; padding:2px 8px; font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--violet-l); }
+    .ai-out pre { background:rgba(0,0,0,.65); border:1px solid rgba(255,200,180,0.08); border-radius:var(--r-md); padding:18px; margin:14px 0; overflow-x:auto; box-shadow:inset 0 2px 8px rgba(0,0,0,0.4); }
+    .ai-out pre code { background:none; border:none; padding:0; color:var(--cyan-l); }
+    .ai-out blockquote { border-left:3px solid; border-image:var(--grad-vivid) 1; padding:12px 18px; color:var(--text-2); font-style:italic; margin:14px 0; background:rgba(225,29,106,0.07); border-radius:0 var(--r-md) var(--r-md) 0; font-size:13.5px; }
+    .ai-out strong { color:var(--text-1); font-weight:700; }
+    .ai-out table { width:100%; border-collapse:collapse; margin:16px 0; font-size:13px; border-radius:var(--r-md); overflow:hidden; }
+    .ai-out th { background:linear-gradient(135deg,rgba(225,29,106,0.25) 0%, rgba(217,119,6,0.18) 100%); color:var(--violet-l); padding:10px 14px; text-align:left; font-weight:700; border:1px solid rgba(225,29,106,.22); }
+    .ai-out td { padding:9px 14px; color:var(--text-2); border:1px solid rgba(255,200,180,0.06); }
+    .ai-out tr:nth-child(even) td { background:rgba(255,220,200,.025); }
+
+    /* Loader */
+    .loader-w { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:60px; gap:20px; color:var(--text-2); font-size:14.5px; font-weight:500; }
+    .spinner {
+      width:44px; height:44px;
+      border:3px solid rgba(255,200,180,0.06);
+      border-top-color:var(--violet);
+      border-right-color:var(--cyan);
+      border-radius:50%; animation:spin .9s linear infinite;
+      box-shadow:0 0 20px rgba(225,29,106,0.25);
+    }
+    @keyframes spin { to{transform:rotate(360deg)} }
+
+    /* Empty state */
+    .empty { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:56px 32px; text-align:center; color:var(--text-3); }
+    .e-icon-wrap {
+      width:64px; height:64px; border-radius:20px;
+      background: linear-gradient(135deg, rgba(225,29,106,0.22) 0%, rgba(217,119,6,0.12) 100%);
+      border:1px solid rgba(253,164,181,0.28);
+      box-shadow: 0 0 30px rgba(225,29,106,0.2), inset 0 1px 0 rgba(255,220,200,0.12);
+      display:flex; align-items:center; justify-content:center; color:var(--violet-l); margin-bottom:18px;
+    }
+    .e-icon-wrap .ico, .e-icon-wrap svg {
+      width:26px !important; height:26px !important; stroke-width:2.2; flex-shrink:0;
+    }
+    .e-title { font-size:18px; font-weight:800; color:var(--text-1); margin-bottom:8px; }
+    .e-sub   { font-size:14px; max-width:320px; line-height:1.65; color:var(--text-2); }
+
+    /* ══════════════════════════════════════
+       DASHBOARD CARDS WITH 3D IMAGE ASSETS
+    ══════════════════════════════════════ */
+    .dash-grid {
+      display:grid;
+      grid-template-columns:repeat(6, 1fr);
+      gap:16px;
+      margin-bottom:0;
+    }
+    /* Top row: 3 cards spanning 2 columns each (3 x 2 = 6) */
+    .dash-grid > :nth-child(1),
+    .dash-grid > :nth-child(2),
+    .dash-grid > :nth-child(3) {
+      grid-column: span 2;
+    }
+    /* Bottom row: 2 cards spanning 3 columns each (2 x 3 = 6) */
+    .dash-grid > :nth-child(4),
+    .dash-grid > :nth-child(5) {
+      grid-column: span 3;
+    }
+    
+    .feat-card-3d {
+      background: linear-gradient(160deg, rgba(36,14,24,0.70) 0%, rgba(14,6,10,0.85) 100%);
+      border:1px solid rgba(255,200,180,0.09);
+      box-shadow: var(--shadow-card);
+      border-radius:var(--r-xl); padding:16px 18px; cursor:pointer; transition:var(--t);
+      position:relative; overflow:hidden;
+      display:flex; flex-direction:column; justify-content:space-between; backdrop-filter:blur(20px);
+    }
+    /* Card inner top-edge highlight */
+    .feat-card-3d::before {
+      content:''; position:absolute; top:0; left:0; right:0; height:1px;
+      background:linear-gradient(90deg, transparent 0%, rgba(255,220,200,0.18) 50%, transparent 100%);
+    }
+    /* Card subtle corner glow */
+    .feat-card-3d::after {
+      content:''; position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none;
+      background: radial-gradient(ellipse 60% 40% at 10% 0%, rgba(225,29,106,0.12) 0%, transparent 60%);
+      opacity:0; transition:opacity .35s ease;
+    }
+    .feat-card-3d:hover { transform:translateY(-5px) scale(1.01); border-color:rgba(253,164,181,0.35); box-shadow: var(--shadow-hov), var(--glow-violet); }
+    .feat-card-3d:hover::after { opacity:1; }
+    
+    .feat-card-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+    .feat-img-thumb {
+      width:46px; height:46px; border-radius:13px; overflow:hidden;
+      background: linear-gradient(135deg, rgba(225,29,106,0.18), rgba(217,119,6,0.12));
+      border:1px solid rgba(255,220,200,0.14);
+      padding:2px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,220,200,0.15);
+      flex-shrink:0;
+    }
+    .feat-img-thumb img { width:100%; height:100%; object-fit:cover; border-radius:10px; transition:var(--t); }
+    .feat-card-3d:hover .feat-img-thumb img { transform:scale(1.10); }
+    
+    .feat-badge {
+      padding:4px 10px; border-radius:100px; font-size:10px; font-weight:800;
+      background: linear-gradient(135deg, rgba(225,29,106,0.18) 0%, rgba(217,119,6,0.12) 100%);
+      border:1px solid rgba(225,29,106,0.30);
+      color:rgba(253,164,181,0.9); text-transform:uppercase; letter-spacing:0.07em;
+    }
+    .feat-ttl  { font-size:15.5px; font-weight:800; margin-bottom:5px; color:var(--text-1); letter-spacing:-0.01em; }
+    .feat-desc { font-size:12px; color:var(--text-2); line-height:1.48; }
+
+    .feat-wide-3d {
+      background: linear-gradient(135deg, rgba(32,12,22,0.75) 0%, rgba(14,6,12,0.85) 100%);
+      border:1px solid rgba(255,200,180,0.09);
+      box-shadow: var(--shadow-card);
+      border-radius:var(--r-xl); padding:24px 28px; cursor:pointer; transition:var(--t);
+      display:flex; align-items:center; gap:24px; backdrop-filter:blur(20px); position:relative; overflow:hidden;
+    }
+    .feat-wide-3d::before {
+      content:''; position:absolute; top:0; left:0; right:0; height:1px;
+      background:linear-gradient(90deg, transparent 0%, rgba(255,220,200,0.15) 50%, transparent 100%);
+    }
+    .feat-wide-3d:hover { transform:translateY(-4px); border-color:rgba(253,164,181,0.35); box-shadow: var(--shadow-hov), var(--glow-violet); }
+    .feat-wide-3d .feat-img-thumb { width:70px; height:70px; border-radius:18px; }
+
+    /* ══════════════════════════════════════
+       EXPLAINER STYLES
+    ══════════════════════════════════════ */
+    .style-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:12px; margin-bottom:22px; }
+    .scard {
+      padding:16px 12px;
+      background: linear-gradient(160deg, rgba(255,220,200,0.048) 0%, rgba(18,8,14,0.70) 100%);
+      border:1px solid rgba(255,200,180,0.09);
+      box-shadow: var(--shadow-card);
+      border-radius:var(--r-md); cursor:pointer; transition:var(--t);
+      text-align:center; display:flex; flex-direction:column; align-items:center; gap:8px; position:relative; overflow:hidden;
+    }
+    .scard::before { content:''; position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg,transparent,rgba(255,220,200,0.15),transparent); }
+    .scard:hover { border-color:rgba(253,164,181,0.40); transform:translateY(-4px); box-shadow:var(--shadow-hov); }
+    .scard.active {
+      border-color:rgba(253,164,181,0.55);
+      background: linear-gradient(160deg, rgba(225,29,106,0.25) 0%, rgba(217,119,6,0.15) 100%);
+      box-shadow: 0 0 28px rgba(225,29,106,0.32), var(--shadow-card);
+    }
+    .sicon-wrap {
+      width:38px; height:38px; border-radius:11px;
+      background: linear-gradient(135deg, rgba(255,220,200,0.07) 0%, rgba(255,220,200,0.02) 100%);
+      border:1px solid rgba(255,200,180,0.10);
+      box-shadow: inset 0 1px 0 rgba(255,220,200,0.10);
+      display:flex; align-items:center; justify-content:center; color:var(--text-2); transition:var(--t);
+    }
+    .scard.active .sicon-wrap {
+      background: linear-gradient(135deg, #e11d6a 0%, #d97706 100%);
+      border-color:rgba(253,164,181,0.4);
+      color:#fff;
+      box-shadow: 0 0 16px rgba(124,58,237,0.6), inset 0 1px 0 rgba(255,255,255,0.25);
+    }
+    .snm  { font-size:12px; font-weight:700; color:var(--text-2); letter-spacing:.02em; }
+    .scard.active .snm { color:var(--violet-l); }
+    .exp-bar { display:flex; align-items:center; gap:14px; margin-bottom:20px; flex-wrap:wrap; }
+
+    /* ══════════════════════════════════════
+       KNOWLEDGE GRAPH
+    ══════════════════════════════════════ */
+    .g-bar { display:flex; align-items:center; gap:12px; margin-bottom:18px; flex-wrap:wrap; }
+    #gwrap {
+      width:100%; height:540px; border-radius:var(--r-xl);
+      border:1px solid rgba(255,255,255,0.09);
+      box-shadow: var(--shadow-card), inset 0 0 80px rgba(6,182,212,0.03);
+      overflow:hidden; position:relative;
+      background:
+        radial-gradient(ellipse 60% 50% at 30% 40%, rgba(124,58,237,0.10) 0%, transparent 55%),
+        radial-gradient(ellipse 50% 50% at 75% 65%, rgba(6,182,212,0.08) 0%, transparent 55%),
+        linear-gradient(160deg, rgba(14,8,36,0.88) 0%, rgba(6,6,18,0.94) 100%);
+    }
+    #gwrap svg { width:100%; height:100%; }
+    .g-tip { position:absolute; background:var(--bg-surface); border:1px solid var(--border-acc); border-radius:var(--r-md); padding:12px 16px; font-size:12.5px; color:var(--text-2); max-width:220px; pointer-events:none; opacity:0; transition:opacity .18s; z-index:10; backdrop-filter:blur(20px); box-shadow:0 10px 30px rgba(0,0,0,0.5); }
+    .g-legend { display:none; gap:24px; margin-top:16px; flex-wrap:wrap; }
+    .leg-i { display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--text-2); font-weight:500; }
+    .leg-d { width:12px; height:12px; border-radius:50%; }
+    .g-info { display:none; background:var(--bg-card); border:1px solid var(--border); border-radius:var(--r-lg); padding:20px; margin-top:16px; font-size:14px; color:var(--text-2); line-height:1.65; }
+    .g-info-ttl { font-size:16px; font-weight:800; color:var(--text-1); margin-bottom:6px; }
+
+    /* ══════════════════════════════════════
+       FEYNMAN COACH
+    ══════════════════════════════════════ */
+    .fsteps { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+    .fstep {
+      text-align:center; padding:18px 10px;
+      background: linear-gradient(160deg, rgba(255,255,255,0.04) 0%, rgba(10,10,28,0.70) 100%);
+      border:1px solid rgba(255,255,255,0.09);
+      box-shadow: var(--shadow-card);
+      border-radius:var(--r-md); display:flex; flex-direction:column; align-items:center; gap:8px;
+    }
+    .fnum {
+      width:30px; height:30px; border-radius:50%;
+      background: linear-gradient(135deg, rgba(124,58,237,0.3) 0%, rgba(99,102,241,0.2) 100%);
+      border:1px solid rgba(167,139,250,0.35);
+      box-shadow: 0 0 12px rgba(124,58,237,0.25), inset 0 1px 0 rgba(255,255,255,0.15);
+      color:var(--violet-l); font-size:13px; font-weight:800; display:flex; align-items:center; justify-content:center;
+    }
+    .ftxt { font-size:11.5px; font-weight:600; color:var(--text-2); line-height:1.4; }
+    .f-ta {
+      width:100%; min-height:170px; padding:20px;
+      background: linear-gradient(160deg, rgba(20,12,48,0.55) 0%, rgba(8,8,22,0.72) 100%);
+      border:1px solid rgba(255,255,255,0.10);
+      box-shadow: var(--shadow-card), inset 0 2px 8px rgba(0,0,0,0.3);
+      border-radius:var(--r-lg); color:var(--text-1); font-size:14.5px; font-family:'Inter',sans-serif;
+      line-height:1.8; outline:none; resize:vertical; transition:var(--t);
+    }
+    .f-ta:focus {
+      border-color:rgba(167,139,250,0.55);
+      box-shadow: 0 0 0 3px rgba(124,58,237,0.15), var(--shadow-card), inset 0 2px 8px rgba(0,0,0,0.2);
+      background: linear-gradient(160deg, rgba(28,16,64,0.65) 0%, rgba(10,10,28,0.75) 100%);
+    }
+    .f-ta::placeholder { color:var(--text-3); }
+    .f-bar { display:flex; align-items:center; gap:14px; margin:14px 0 24px; flex-wrap:wrap; }
+    .score-row {
+      display:none; align-items:center; gap:24px; padding:24px 30px;
+      background: linear-gradient(135deg, rgba(28,16,60,0.72) 0%, rgba(10,10,28,0.82) 100%);
+      border:1px solid rgba(255,255,255,0.10);
+      box-shadow: var(--shadow-card);
+      border-radius:var(--r-xl); margin-bottom:22px; backdrop-filter:blur(20px); position:relative; overflow:hidden;
+    }
+    .score-row::before { content:''; position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg,transparent,rgba(255,255,255,0.15),transparent); }
+    .ring-wrap { position:relative; width:84px; height:84px; flex-shrink:0; }
+    .ring-wrap svg { transform:rotate(-90deg); }
+    .ring-bg   { fill:none; stroke:rgba(255,255,255,.06); stroke-width:7; }
+    .ring-fill { fill:none; stroke:url(#rg); stroke-width:7; stroke-linecap:round; stroke-dasharray:220; stroke-dashoffset:220; transition:stroke-dashoffset 1.2s cubic-bezier(.4,0,.2,1); filter:drop-shadow(0 0 6px rgba(124,58,237,0.6)); }
+    .ring-num  { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:900; color:var(--text-1); }
+    .score-info { flex:1; }
+    .score-lbl  { font-size:15px; font-weight:800; margin-bottom:10px; color:var(--text-1); }
+    .score-bar  { height:8px; background:rgba(255,255,255,0.07); border-radius:100px; overflow:hidden; box-shadow:inset 0 1px 3px rgba(0,0,0,0.4); }
+    .score-fill { height:100%; background:linear-gradient(90deg, #7c3aed, #6366f1, #06b6d4); border-radius:100px; width:0%; transition:width 1.2s cubic-bezier(.4,0,.2,1); box-shadow:0 0 10px rgba(124,58,237,0.5); }
+    .score-hint { font-size:12.5px; color:var(--text-2); margin-top:8px; }
+
+    /* ══════════════════════════════════════
+       ADAPTIVE QUIZ
+    ══════════════════════════════════════ */
+    .stats-row { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:22px; }
+    .stat-c {
+      background: linear-gradient(160deg, rgba(28,16,60,0.65) 0%, rgba(10,10,26,0.78) 100%);
+      border:1px solid rgba(255,255,255,0.09);
+      box-shadow: var(--shadow-card);
+      border-radius:var(--r-xl); padding:22px; text-align:center; backdrop-filter:blur(18px); position:relative; overflow:hidden;
+    }
+    .stat-c::before { content:''; position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg,transparent,rgba(255,255,255,0.14),transparent); }
+    .stat-v { font-size:38px; font-weight:900; background:var(--grad-vivid); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; filter:drop-shadow(0 0 12px rgba(124,58,237,0.4)); }
+    .stat-l { font-size:12.5px; font-weight:600; color:var(--text-2); margin-top:4px; display:flex; align-items:center; justify-content:center; gap:6px; }
+    .diff-row { display:flex; gap:10px; margin-bottom:20px; }
+    .diff-b {
+      padding:10px 24px; border-radius:100px;
+      border:1px solid rgba(255,255,255,0.11);
+      background: linear-gradient(160deg, rgba(255,255,255,0.05) 0%, rgba(10,10,28,0.5) 100%);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
+      color:var(--text-2); font-size:13px; font-weight:600; cursor:pointer; transition:var(--t); font-family:'Inter',sans-serif; display:flex; align-items:center; gap:6px;
+    }
+    .diff-b:hover { border-color:rgba(167,139,250,0.35); color:var(--text-1); }
+    .diff-b.active {
+      background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 50%, #0891b2 100%);
+      border-color:transparent; color:#fff;
+      box-shadow: 0 0 24px rgba(124,58,237,0.4), inset 0 1px 0 rgba(255,255,255,0.25);
+    }
+    .quiz-c {
+      background: linear-gradient(160deg, rgba(20,12,50,0.72) 0%, rgba(8,10,24,0.82) 100%);
+      border:1px solid rgba(255,255,255,0.09);
+      box-shadow: var(--shadow-card);
+      border-radius:var(--r-2xl); padding:38px; position:relative; overflow:hidden; backdrop-filter:blur(20px);
+    }
+    .quiz-c::before { content:''; position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,0.15) 50%,transparent 100%); }
+    .quiz-c::after { content:''; position:absolute; top:-40%; right:-10%; width:320px; height:320px; background:radial-gradient(circle,rgba(124,58,237,.12) 0%,transparent 70%); pointer-events:none; }
+    .q-meta { display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; }
+    .q-prog { font-size:13.5px; font-weight:600; color:var(--text-3); }
+    .q-badge {
+      padding:6px 20px; border-radius:100px;
+      background: linear-gradient(135deg, rgba(124,58,237,0.22) 0%, rgba(99,102,241,0.14) 100%);
+      border:1px solid rgba(167,139,250,0.35);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.10);
+      font-size:13.5px; font-weight:700; color:var(--violet-l);
+    }
+    .q-text { font-size:20px; font-weight:800; line-height:1.5; color:var(--text-1); margin-bottom:28px; letter-spacing:-0.01em; }
+    .opts { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    .opt-b {
+      padding:18px 22px;
+      background: linear-gradient(160deg, rgba(255,255,255,0.04) 0%, rgba(10,10,28,0.6) 100%);
+      border:1px solid rgba(255,255,255,0.09);
+      box-shadow: var(--shadow-card);
+      border-radius:var(--r-md); color:var(--text-2); font-size:14px; font-family:'Inter',sans-serif;
+      cursor:pointer; transition:var(--t); text-align:left; line-height:1.5; font-weight:500; display:flex; align-items:flex-start; gap:10px;
+    }
+    .opt-b:hover:not(:disabled) {
+      border-color:rgba(167,139,250,0.45);
+      background: linear-gradient(135deg, rgba(124,58,237,0.18) 0%, rgba(99,102,241,0.10) 100%);
+      color:var(--text-1); transform:translateY(-2px);
+      box-shadow: var(--shadow-hov);
+    }
+    .opt-b.ok   { border-color:rgba(16,185,129,0.6); background:rgba(16,185,129,.10); color:var(--emerald-l); font-weight:700; box-shadow: 0 0 20px rgba(16,185,129,0.15); }
+    .opt-b.bad  { border-color:rgba(239,68,68,0.6);  background:rgba(239,68,68,.10);  color:var(--red-l);    box-shadow: 0 0 20px rgba(239,68,68,0.12); }
+    .q-exp {
+      display:none;
+      background: linear-gradient(135deg, rgba(6,182,212,0.10) 0%, rgba(14,116,144,0.07) 100%);
+      border:1px solid rgba(6,182,212,.30);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
+      border-radius:var(--r-md); padding:16px 22px; margin-top:22px; font-size:13.5px; color:var(--cyan-l); line-height:1.7;
+    }
+    .q-exp.on  { display:block; animation:panelIn .28s ease; }
+    .btn-next  {
+      display:none; margin-top:22px; padding:13px 34px;
+      background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 50%, #0891b2 100%);
+      border:none; border-radius:var(--r-md); color:#fff; font-size:14px; font-weight:700;
+      font-family:'Inter',sans-serif; cursor:pointer; transition:var(--t); align-items:center; gap:9px;
+      box-shadow: var(--shadow-btn); position:relative; overflow:hidden;
+    }
+    .btn-next::before { content:''; position:absolute; inset:0; background:linear-gradient(180deg,rgba(255,255,255,0.16) 0%,transparent 55%); pointer-events:none; }
+    .btn-next.on { display:inline-flex; animation:panelIn .28s ease; }
+    .btn-next:hover { transform:translateY(-2px); box-shadow:var(--shadow-btn-hov); filter:brightness(1.08); }
+    .quiz-end { text-align:center; padding:56px 36px; }
+    .quiz-end-img {
+      width:100px; height:100px; margin:0 auto 22px; border-radius:26px;
+      border:1px solid rgba(255,255,255,0.14);
+      overflow:hidden; padding:4px;
+      background: linear-gradient(135deg, rgba(124,58,237,0.2), rgba(6,182,212,0.12));
+      box-shadow: var(--shadow-card), 0 0 30px rgba(124,58,237,0.2);
+    }
+    .quiz-end-img img { width:100%; height:100%; object-fit:cover; border-radius:21px; }
+    .quiz-end-ttl  { font-size:30px; font-weight:900; margin-bottom:12px; color:var(--text-1); letter-spacing:-0.02em; }
+    .quiz-end-sub  { font-size:15px; color:var(--text-2); line-height:1.65; max-width:420px; margin:0 auto; }
+
+    /* ══════════════════════════════════════
+       ROADMAP
+    ══════════════════════════════════════ */
+    .rm-row { display:grid; grid-template-columns:1fr auto; gap:14px; margin-bottom:26px; }
+    .rm-in {
+      padding:14px 20px;
+      background: linear-gradient(160deg, rgba(20,12,48,0.55) 0%, rgba(8,8,22,0.72) 100%);
+      border:1px solid rgba(255,255,255,0.10);
+      box-shadow: var(--shadow-card), inset 0 2px 8px rgba(0,0,0,0.3);
+      border-radius:var(--r-md); color:var(--text-1); font-size:14.5px; font-family:'Inter',sans-serif; outline:none; transition:var(--t);
+    }
+    .rm-in:focus {
+      border-color:rgba(167,139,250,0.55);
+      box-shadow: 0 0 0 3px rgba(124,58,237,0.15), var(--shadow-card), inset 0 2px 8px rgba(0,0,0,0.2);
+    }
+    .rm-in::placeholder { color:var(--text-3); }
+
+    /* ══════════════════════════════════════
+       MODAL
+    ══════════════════════════════════════ */
+    .modal-ov { position:fixed; inset:0; background:rgba(2,2,12,.82); backdrop-filter:blur(18px) saturate(140%); display:none; align-items:center; justify-content:center; z-index:1000; }
+    .modal-ov.show { display:flex; }
+    .modal {
+      background: linear-gradient(160deg, rgba(22,14,52,0.96) 0%, rgba(10,10,26,0.98) 100%);
+      border:1px solid rgba(255,255,255,0.12);
+      box-shadow: 0 32px 100px rgba(0,0,0,.85), 0 0 60px rgba(124,58,237,0.18), inset 0 1px 0 rgba(255,255,255,0.10);
+      border-radius:var(--r-2xl); padding:40px; width:100%; max-width:490px;
+      animation:modalIn .38s cubic-bezier(.34,1.56,.64,1); position:relative; overflow:hidden;
+    }
+    .modal::before { content:''; position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg,transparent 0%,rgba(167,139,250,0.7) 50%,transparent 100%); }
+    @keyframes modalIn { from{opacity:0;transform:scale(.88) translateY(24px)} to{opacity:1;transform:scale(1) translateY(0)} }
+    .modal-hdr { display:flex; align-items:center; gap:14px; margin-bottom:14px; }
+    .modal-icon-wrap {
+      width:50px; height:50px; border-radius:15px;
+      background: linear-gradient(135deg, rgba(124,58,237,0.30) 0%, rgba(99,102,241,0.18) 100%);
+      border:1px solid rgba(167,139,250,0.35);
+      box-shadow: 0 0 20px rgba(124,58,237,0.25), inset 0 1px 0 rgba(255,255,255,0.15);
+      display:flex; align-items:center; justify-content:center; color:var(--violet-l); flex-shrink:0;
+    }
+    .modal-icon-wrap .ico, .modal-icon-wrap svg {
+      width:24px !important; height:24px !important; flex-shrink:0;
+    }
+    .modal-ttl  { font-size:22px; font-weight:900; letter-spacing:-0.02em; }
+    .modal-sub  { font-size:13.5px; color:var(--text-2); margin-bottom:22px; line-height:1.65; }
+
+    .modal-provider-selector { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:18px; }
+    .prov-btn {
+      padding:12px; border-radius:var(--r-md);
+      border:1px solid rgba(255,255,255,0.10);
+      background: linear-gradient(160deg, rgba(255,255,255,0.05) 0%, rgba(10,10,28,0.5) 100%);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
+      color:var(--text-2); font-size:12.5px; font-weight:700;
+      cursor:pointer; transition:var(--t); text-align:center; display:flex; align-items:center; justify-content:center; gap:7px;
+    }
+    .prov-btn:hover { border-color:rgba(167,139,250,0.35); color:var(--text-1); }
+    .prov-btn.active {
+      background: linear-gradient(135deg, rgba(124,58,237,0.25) 0%, rgba(99,102,241,0.15) 100%);
+      border-color:rgba(167,139,250,0.45);
+      color:var(--violet-l);
+      box-shadow: 0 0 14px rgba(124,58,237,0.20), inset 0 1px 0 rgba(255,255,255,0.12);
+    }
+
+    .modal-in {
+      width:100%; padding:14px 18px;
+      background: linear-gradient(160deg, rgba(20,12,48,0.60) 0%, rgba(8,8,22,0.75) 100%);
+      border:1px solid rgba(255,255,255,0.10);
+      box-shadow: inset 0 2px 8px rgba(0,0,0,0.35);
+      border-radius:var(--r-md); color:var(--text-1); font-size:13.5px; font-family:'JetBrains Mono',monospace; outline:none; transition:var(--t); margin-bottom:20px;
+    }
+    .modal-in:focus { border-color:rgba(167,139,250,0.55); box-shadow: 0 0 0 3px rgba(124,58,237,0.15), inset 0 2px 8px rgba(0,0,0,0.25); }
+    .modal-in::placeholder { color:var(--text-3); font-family:'JetBrains Mono',monospace; }
+    .modal-acts { display:flex; gap:12px; flex-direction:column; }
+    .modal-row  { display:flex; gap:10px; }
+    .btn-cancel {
+      flex:1; padding:12px;
+      background: linear-gradient(160deg, rgba(255,255,255,0.04) 0%, rgba(10,10,28,0.5) 100%);
+      border:1px solid rgba(255,255,255,0.11);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.07);
+      border-radius:var(--r-md); color:var(--text-2); font-size:13.5px; font-weight:600; font-family:'Inter',sans-serif; cursor:pointer; transition:var(--t);
+      display:inline-flex; align-items:center; justify-content:center; text-align:center;
+    }
+    .btn-cancel:hover { border-color:rgba(167,139,250,0.35); color:var(--text-1); }
+
+    /* TOAST */
+    #toast { position:fixed; bottom:28px; left:50%; transform:translateX(-50%); padding:13px 28px; border-radius:100px; font-size:13.5px; font-weight:700; color:#fff; z-index:9999; opacity:0; pointer-events:none; white-space:nowrap; backdrop-filter:blur(28px) saturate(160%); border:1px solid rgba(255,255,255,.18); transition:opacity .3s ease, transform .3s ease; box-shadow:0 20px 50px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.18); }
+
+    /* SCROLLBAR */
+    ::-webkit-scrollbar { width:6px; }
+    ::-webkit-scrollbar-track { background:transparent; }
+    ::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
+    ::-webkit-scrollbar-thumb:hover { background:rgba(225,29,106,.5); }
+
+    /* ══════════════════════════════════════
+       HERO LANDING MODAL
+    ══════════════════════════════════════ */
+    .hero-ov {
+      position:fixed; inset:0; z-index:2000;
+      background: radial-gradient(ellipse 80% 60% at 30% 20%, rgba(225,29,106,0.18) 0%, transparent 55%),
+                  radial-gradient(ellipse 70% 60% at 80% 80%, rgba(217,119,6,0.14) 0%, transparent 55%),
+                  rgba(8,5,7,0.97);
+      backdrop-filter:blur(24px);
+      display:flex; align-items:center; justify-content:center;
+      animation: heroFadeIn .6s ease;
+      transition: opacity .55s ease, transform .55s cubic-bezier(.4,0,.2,1);
+    }
+    .hero-ov.closing {
+      opacity:0;
+      transform: scale(1.04);
+      pointer-events:none;
+    }
+    @keyframes heroFadeIn { from{opacity:0;transform:scale(.97)} to{opacity:1;transform:scale(1)} }
+    .hero-modal {
+      max-width:680px; width:100%;
+      padding:36px 48px;
+      text-align:center;
+      position:relative;
+      transform:scale(0.92);
+      transform-origin:center center;
+    }
+    .hero-badge {
+      display:inline-flex; align-items:center; gap:8px; padding:7px 20px; border-radius:100px;
+      background:rgba(225,29,106,0.12); border:1px solid rgba(253,164,181,0.3);
+      font-size:12px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; color:var(--violet-l);
+      margin-bottom:28px;
+      box-shadow: 0 0 20px rgba(225,29,106,0.15);
+    }
+    .hero-title {
+      font-size:48px; font-weight:900; line-height:1.05; letter-spacing:-0.04em; margin-bottom:12px;
+      background: linear-gradient(135deg, #fff5f7 0%, #fda4b5 40%, #d97706 100%);
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+    }
+    .hero-sub {
+      font-size:15px; color:var(--text-2); line-height:1.65; max-width:480px; margin:0 auto 24px;
+    }
+    .hero-problem {
+      display:inline-block; padding:10px 20px; border-radius:var(--r-md);
+      background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.25);
+      font-size:13px; color:#fca5a5; font-weight:600; margin-bottom:28px; line-height:1.5;
+    }
+    .hero-features {
+      display:grid; grid-template-columns:repeat(5,1fr); gap:10px; margin-bottom:32px;
+    }
+    .hero-feat {
+      padding:12px 8px; border-radius:var(--r-md); text-align:center;
+      background:linear-gradient(160deg, rgba(255,220,200,0.048) 0%, rgba(18,8,14,0.70) 100%);
+      border:1px solid rgba(255,200,180,0.09);
+      font-size:10px; font-weight:700; color:var(--text-2); text-transform:uppercase; letter-spacing:.06em;
+      line-height:1.4;
+    }
+    .hero-feat-icon { margin-bottom:6px; display:flex; align-items:center; justify-content:center; }
+    .hero-cta {
+      padding:15px 44px; font-size:15px; font-weight:800;
+      background: linear-gradient(135deg, #e11d6a 0%, #c2185b 50%, #d97706 100%);
+      border:none; border-radius:var(--r-xl); color:#fff; cursor:pointer;
+      box-shadow: 0 8px 30px rgba(225,29,106,0.50), inset 0 1px 0 rgba(255,220,200,0.25);
+      transition:var(--t); font-family:'Inter',sans-serif; position:relative; overflow:hidden;
+    }
+    .hero-cta::before { content:''; position:absolute; inset:0; background:linear-gradient(180deg,rgba(255,255,255,0.18) 0%,transparent 55%); pointer-events:none; }
+    .hero-cta:hover { transform:translateY(-3px); box-shadow:0 16px 48px rgba(225,29,106,.65), inset 0 1px 0 rgba(255,220,200,0.25); }
+    .hero-skip { display:block; margin-top:14px; font-size:12px; color:var(--text-3); cursor:pointer; background:none; border:none; font-family:'Inter',sans-serif; transition:var(--t); }
+    .hero-skip:hover { color:var(--text-2); }
+
+    /* ══════════════════════════════════════
+       SESSION STATS SIDEBAR WIDGET
+    ══════════════════════════════════════ */
+    .session-stats {
+      margin-top:18px; padding:14px 12px;
+      background:linear-gradient(160deg, rgba(225,29,106,0.08) 0%, rgba(217,119,6,0.05) 100%);
+      border:1px solid rgba(255,200,180,0.10); border-radius:var(--r-md);
+    }
+    .ss-title { font-size:9px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; color:var(--text-3); margin-bottom:12px; }
+    .ss-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .ss-item { text-align:center; }
+    .ss-val { font-size:22px; font-weight:900; background:var(--grad-vivid); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+    .ss-lbl { font-size:9.5px; font-weight:600; color:var(--text-3); margin-top:2px; letter-spacing:.04em; }
+    .ss-bar-wrap { margin-top:12px; }
+    .ss-bar-lbl { display:flex; justify-content:space-between; font-size:10px; color:var(--text-3); font-weight:600; margin-bottom:4px; }
+    .ss-bar { height:5px; background:rgba(255,200,180,0.08); border-radius:100px; overflow:hidden; }
+    .ss-bar-fill { height:100%; background:var(--grad-vivid); border-radius:100px; transition:width 1s ease; }
+
+    /* ══════════════════════════════════════
+       AI THINKING STEPS LOADER
+    ══════════════════════════════════════ */
+    .ai-thinking {
+      display:flex; flex-direction:column; align-items:center; justify-content:center; padding:56px 32px; gap:24px;
+    }
+    .thinking-ring {
+      width:56px; height:56px; position:relative;
+    }
+    .thinking-ring::before, .thinking-ring::after {
+      content:''; position:absolute; border-radius:50%;
+    }
+    .thinking-ring::before {
+      inset:0; border:3px solid rgba(255,200,180,0.08);
+    }
+    .thinking-ring::after {
+      inset:0; border:3px solid transparent;
+      border-top-color:var(--violet); border-right-color:var(--cyan);
+      animation:spin .9s linear infinite;
+    }
+    .thinking-steps { display:flex; flex-direction:column; gap:10px; align-items:center; }
+    .thinking-step {
+      display:flex; align-items:center; gap:10px; font-size:13px; color:var(--text-3); font-weight:500;
+      opacity:0; animation:stepIn .4s ease forwards;
+    }
+    .thinking-step.active { color:var(--text-2); }
+    .thinking-step.done { color:var(--emerald); }
+    .step-dot {
+      width:8px; height:8px; border-radius:50%; background:rgba(255,200,180,0.15); flex-shrink:0; transition:var(--t);
+    }
+    .thinking-step.active .step-dot { background:var(--violet); box-shadow:0 0 8px var(--violet); animation:blink 1.2s ease-in-out infinite; }
+    .thinking-step.done .step-dot { background:var(--emerald); box-shadow:0 0 8px var(--emerald); animation:none; }
+    @keyframes stepIn { to{opacity:1;transform:translateY(0)} from{opacity:0;transform:translateY(8px)} }
+
+    /* ══════════════════════════════════════
+       AI TRANSPARENCY BADGE
+    ══════════════════════════════════════ */
+    .ai-badge {
+      display:inline-flex; align-items:center; gap:6px; padding:4px 12px; border-radius:100px;
+      background:rgba(225,29,106,0.10); border:1px solid rgba(253,164,181,0.22);
+      font-size:10.5px; font-weight:700; color:var(--violet-l); letter-spacing:.04em;
+      margin-left:10px; vertical-align:middle;
+    }
+    .ai-pulse { width:6px; height:6px; border-radius:50%; background:var(--violet); animation:blink 1.8s ease-in-out infinite; }
+
+    /* ══════════════════════════════════════
+       FEATURE IMPACT CALLOUT
+    ══════════════════════════════════════ */
+    .impact-callout {
+      display:flex; align-items:center; gap:12px; padding:14px 20px; margin-bottom:22px;
+      background:linear-gradient(135deg, rgba(217,119,6,0.08) 0%, rgba(225,29,106,0.06) 100%);
+      border:1px solid rgba(255,200,180,0.12); border-radius:var(--r-md);
+      font-size:13px; color:var(--text-2); line-height:1.55;
+    }
+    .impact-icon {
+      width:36px; height:36px; border-radius:10px; flex-shrink:0;
+      background:linear-gradient(135deg, rgba(217,119,6,0.20) 0%, rgba(225,29,106,0.15) 100%);
+      border:1px solid rgba(255,200,180,0.15);
+      display:flex; align-items:center; justify-content:center; color:var(--cyan-l);
+    }
+    .impact-callout strong { color:var(--text-1); }
+
+    /* ══════════════════════════════════════
+       COPY / EXPORT BUTTON
+    ══════════════════════════════════════ */
+    .output-actions {
+      display:flex; align-items:center; gap:8px; margin-bottom:12px; justify-content:flex-end;
+    }
+    .btn-action {
+      padding:7px 16px; border-radius:var(--r-md); font-size:12px; font-weight:700;
+      background:linear-gradient(160deg, rgba(255,220,200,0.06) 0%, rgba(255,180,150,0.02) 100%);
+      border:1px solid rgba(255,200,180,0.12); color:var(--text-2);
+      cursor:pointer; transition:var(--t); display:inline-flex; align-items:center; gap:6px;
+      font-family:'Inter',sans-serif;
+    }
+    .btn-action:hover { border-color:rgba(253,164,181,0.4); color:var(--text-1); transform:translateY(-1px); }
+    .btn-action.copied { border-color:rgba(16,185,129,0.5); color:var(--emerald-l); }
+
+    /* ══════════════════════════════════════
+       MASTERY SCORE CARD (Quiz End)
+    ══════════════════════════════════════ */
+    .mastery-card {
+      padding:28px; border-radius:var(--r-xl);
+      background:linear-gradient(160deg, rgba(36,14,24,0.80) 0%, rgba(14,6,10,0.90) 100%);
+      border:1px solid rgba(255,200,180,0.12);
+      box-shadow: var(--shadow-card), 0 0 40px rgba(225,29,106,0.08);
+      margin-top:20px; position:relative; overflow:hidden;
+    }
+    .mastery-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:var(--grad-vivid); }
+    .mastery-level {
+      display:inline-flex; align-items:center; gap:8px; padding:6px 20px; border-radius:100px;
+      font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:.1em; margin-bottom:12px;
+    }
+    .mastery-level.novice    { background:rgba(148,163,184,0.15); border:1px solid rgba(148,163,184,0.3); color:#94a3b8; }
+    .mastery-level.apprentice{ background:rgba(217,119,6,0.15);   border:1px solid rgba(217,119,6,0.3); color:var(--cyan-l); }
+    .mastery-level.scholar   { background:rgba(225,29,106,0.15);  border:1px solid rgba(225,29,106,0.3); color:var(--violet-l); }
+    .mastery-level.expert    { background:rgba(16,185,129,0.15);  border:1px solid rgba(16,185,129,0.3); color:var(--emerald-l); }
+    .mastery-score-big { font-size:64px; font-weight:900; line-height:1; background:var(--grad-vivid); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+    .mastery-ai-rec {
+      margin-top:16px; padding:14px 18px; border-radius:var(--r-md);
+      background:rgba(217,119,6,0.07); border:1px solid rgba(255,200,180,0.10);
+      font-size:13.5px; color:var(--text-2); line-height:1.65;
+    }
+    .mastery-ai-rec strong { color:var(--cyan-l); }
+
+    /* ══════════════════════════════════════
+       KEYBOARD SHORTCUT OVERLAY
+    ══════════════════════════════════════ */
+    .kb-overlay {
+      position:fixed; inset:0; background:rgba(8,5,7,0.88); backdrop-filter:blur(18px);
+      display:none; align-items:center; justify-content:center; z-index:1500;
+    }
+    .kb-overlay.show { display:flex; }
+    .kb-modal {
+      background:linear-gradient(160deg, rgba(36,14,24,0.97) 0%, rgba(14,6,10,0.98) 100%);
+      border:1px solid rgba(255,200,180,0.12); border-radius:var(--r-2xl); padding:40px;
+      max-width:480px; width:100%; box-shadow:0 32px 100px rgba(0,0,0,.8);
+      animation:modalIn .3s ease;
+    }
+    .kb-title { font-size:20px; font-weight:900; margin-bottom:24px; color:var(--text-1); display:flex; align-items:center; gap:10px; }
+    .kb-grid { display:grid; grid-template-columns:auto 1fr; gap:10px 20px; align-items:center; }
+    .kb-key {
+      padding:5px 12px; border-radius:6px; font-size:12px; font-weight:700;
+      background:rgba(255,200,180,0.08); border:1px solid rgba(255,200,180,0.18);
+      color:var(--text-1); font-family:'JetBrains Mono',monospace; white-space:nowrap; text-align:center;
+    }
+    .kb-desc { font-size:13px; color:var(--text-2); }
+    .kb-close { width:100%; margin-top:24px; }
+
+    /* ══════════════════════════════════════
+       SHIMMER SKELETON
+    ══════════════════════════════════════ */
+    @keyframes shimmer {
+      0%   { background-position: -600px 0; }
+      100% { background-position:  600px 0; }
+    }
+    .skeleton {
+      background: linear-gradient(90deg, rgba(255,200,180,0.04) 25%, rgba(255,200,180,0.10) 37%, rgba(255,200,180,0.04) 63%);
+      background-size:1200px 100%; animation:shimmer 1.6s infinite linear;
+      border-radius:var(--r-md);
+    }
+
+    /* RESPONSIVE */
+    @media(max-width:860px) {
+      .app { grid-template-columns:1fr; grid-template-rows:68px auto 1fr; }
+      .sidebar { border-right:none; border-bottom:1px solid var(--border); display:flex; flex-wrap:wrap; gap:8px; padding:12px 14px; }
+      .sec-lbl,.topic-box { display:none; }
+      .nav-item { margin-bottom:0; }
+      .main { padding:20px 16px; }
+      .style-grid { grid-template-columns:repeat(3,1fr); }
+      .opts,.dash-grid { grid-template-columns:1fr; }
+      .fsteps { grid-template-columns:repeat(2,1fr); }
+      .rm-row { grid-template-columns:1fr; }
+      .hero-features { grid-template-columns:repeat(2,1fr); }
+      .hero-title { font-size:38px; }
+      .hero-modal { padding:40px 24px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- API Modal -->
+<div class="modal-ov" id="apiModal" role="dialog" aria-modal="true" aria-labelledby="mttl">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-icon-wrap">
+        <svg class="ico ico-lg" viewBox="0 0 24 24"><path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M4.93 19.07L19.07 4.93"/></svg>
+      </div>
+      <div>
+        <h2 class="modal-ttl" id="mttl">Connect AI Engine</h2>
+        <p style="font-size:12px; color:var(--text-3);">Paste your OpenRouter API key to enable live AI</p>
+      </div>
+    </div>
+    
+    <p class="modal-sub">Connect an API key from <strong>OpenRouter</strong> to power all 5 learning tools with live AI.</p>
+
+    <div class="modal-provider-selector" style="grid-template-columns:1fr;">
+      <button class="prov-btn active" id="prov-openrouter" onclick="setProvider('openrouter')">
+        <svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg> OpenRouter
+      </button>
+    </div>
+
+    <input class="modal-in" id="mkeyIn" type="password" placeholder="sk-or-v1-… (OpenRouter Key)" autocomplete="off" />
+
+    <div class="modal-acts">
+      <div class="modal-row">
+        <button class="btn-cancel" id="mcancel">Cancel</button>
+        <button class="btn-p" id="msave" style="flex:2;">Save &amp; Connect</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Hero Landing Screen -->
+<div class="hero-ov" id="heroScreen">
+  <div class="hero-modal">
+    <div class="hero-badge">
+      <div class="ai-pulse"></div> AI-Powered Learning Platform
+    </div>
+    <h1 class="hero-title">Learn Anything.<br>Retain Everything.</h1>
+    <p class="hero-sub">5 AI tools that adapt to <em>your</em> learning style — so you don't just study, you actually understand.</p>
+    <div class="hero-problem">⚠️ Students forget <strong>70% of what they learn</strong> within a week. NeuroLearn fixes that.</div>
+    <div class="hero-features">
+      <div class="hero-feat"><span class="hero-feat-icon"><img src="./assets/explainer.png" style="width:38px;height:38px;object-fit:cover;border-radius:10px;box-shadow:0 0 12px rgba(225,29,106,.4);"/></span>Concept<br>Explainer</div>
+      <div class="hero-feat"><span class="hero-feat-icon"><img src="./assets/graph.png" style="width:38px;height:38px;object-fit:cover;border-radius:10px;box-shadow:0 0 12px rgba(217,119,6,.4);"/></span>Knowledge<br>Graph</div>
+      <div class="hero-feat"><span class="hero-feat-icon"><img src="./assets/feynman.png" style="width:38px;height:38px;object-fit:cover;border-radius:10px;box-shadow:0 0 12px rgba(225,29,106,.4);"/></span>Feynman<br>Coach</div>
+      <div class="hero-feat"><span class="hero-feat-icon"><img src="./assets/quiz.png" style="width:38px;height:38px;object-fit:cover;border-radius:10px;box-shadow:0 0 12px rgba(217,119,6,.4);"/></span>Adaptive<br>Quiz</div>
+      <div class="hero-feat"><span class="hero-feat-icon"><img src="./assets/roadmap.png" style="width:38px;height:38px;object-fit:cover;border-radius:10px;box-shadow:0 0 12px rgba(225,29,106,.4);"/></span>Study<br>Roadmap</div>
+    </div>
+    <button class="hero-cta" onclick="closeHero()">Start Learning →</button>
+  </div>
+</div>
+
+<!-- Keyboard Shortcuts Overlay -->
+<div class="kb-overlay" id="kbOverlay" onclick="closeKb(event)">
+  <div class="kb-modal">
+    <div class="kb-title">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--violet-l)" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01M8 12h.01M12 12h.01M16 12h.01M7 16h10"/></svg>
+      Keyboard Shortcuts
+    </div>
+    <div class="kb-grid">
+      <div class="kb-key">1</div><div class="kb-desc">Dashboard</div>
+      <div class="kb-key">2</div><div class="kb-desc">Concept Explainer</div>
+      <div class="kb-key">3</div><div class="kb-desc">Knowledge Graph</div>
+      <div class="kb-key">4</div><div class="kb-desc">Feynman Coach</div>
+      <div class="kb-key">5</div><div class="kb-desc">Adaptive Quiz</div>
+      <div class="kb-key">6</div><div class="kb-desc">Study Roadmap</div>
+      <div class="kb-key">?</div><div class="kb-desc">Show this overlay</div>
+      <div class="kb-key">Esc</div><div class="kb-desc">Close overlays</div>
+    </div>
+    <button class="btn-p kb-close" onclick="closeKb()">Close</button>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" role="status" aria-live="polite"></div>
+
+<!-- App -->
+<div class="app">
+
+  <!-- Header -->
+  <header class="hdr">
+    <a href="index.html" class="logo" style="text-decoration:none; cursor:pointer;" title="Return to Homepage">
+      <div class="logo-img-wrap">
+        <img src="./assets/logo.png" alt="NeuroLearn Logo" />
+      </div>
+      <div>
+        <div class="logo-name">NeuroLearn AI</div>
+        <div class="logo-tag">Learn Anything. Retain Everything.</div>
+      </div>
+    </a>
+    <div class="header-actions">
+      <a href="index.html" class="api-pill" style="text-decoration:none; color:inherit; font-weight:600; cursor:pointer;" title="Return to Homepage">
+        <span>← Back to Home</span>
+      </a>
+      <button class="api-pill" id="apiPill" onclick="openModal()" aria-label="API settings">
+        <div class="api-dot on" id="apiDot"></div>
+        <span id="apiTxt">AI Connected</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Sidebar Nav -->
+  <nav class="sidebar" aria-label="Main navigation">
+    <div class="sec-lbl">Features</div>
+    <div class="nav-item active" id="nav-home" onclick="go('home')" role="button" tabindex="0">
+      <svg class="ico" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Dashboard
+    </div>
+    <div class="nav-item" id="nav-explainer" onclick="go('explainer')" role="button" tabindex="0">
+      <svg class="ico" viewBox="0 0 24 24"><path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M4.93 19.07L19.07 4.93"/></svg>
+      Concept Explainer
+    </div>
+    <div class="nav-item" id="nav-graph" onclick="go('graph')" role="button" tabindex="0">
+      <svg class="ico" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+      Knowledge Graph
+    </div>
+    <div class="nav-item" id="nav-feynman" onclick="go('feynman')" role="button" tabindex="0">
+      <svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      Feynman Coach
+    </div>
+    <div class="nav-item" id="nav-quiz" onclick="go('quiz')" role="button" tabindex="0">
+      <svg class="ico" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      Adaptive Quiz
+    </div>
+    <div class="nav-item" id="nav-roadmap" onclick="go('roadmap')" role="button" tabindex="0">
+      <svg class="ico" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+      Study Roadmap
+    </div>
+
+    <div class="topic-box">
+      <div class="sec-lbl">Active Topic</div>
+      <textarea class="topic-ta" id="topicIn" rows="2" placeholder="e.g. Quantum Computing, Photosynthesis, Neural Networks…" aria-label="Topic">Quantum Computing</textarea>
+      <button class="btn-topic" id="btnTopic" onclick="setTopic()">
+        <svg class="ico" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        Set Topic
+      </button>
+    </div>
+
+    <!-- Session Stats Widget -->
+    <div class="session-stats">
+      <div class="ss-title">Session Progress</div>
+      <div class="ss-grid">
+        <div class="ss-item"><div class="ss-val" id="ssTopics">0</div><div class="ss-lbl">Topics</div></div>
+        <div class="ss-item"><div class="ss-val" id="ssScore">—</div><div class="ss-lbl">Avg Score</div></div>
+        <div class="ss-item"><div class="ss-val" id="ssFeynman">—</div><div class="ss-lbl">Feynman</div></div>
+        <div class="ss-item"><div class="ss-val" id="ssQuizzes">0</div><div class="ss-lbl">Quizzes</div></div>
+      </div>
+      <div class="ss-bar-wrap">
+        <div class="ss-bar-lbl"><span>Mastery</span><span id="ssMastery">0%</span></div>
+        <div class="ss-bar"><div class="ss-bar-fill" id="ssMasteryBar" style="width:0%"></div></div>
+      </div>
+    </div>
+
+    <!-- Keyboard Hint -->
+    <div style="margin-top:12px; text-align:center;">
+      <button onclick="document.getElementById('kbOverlay').classList.add('show')" style="background:none;border:none;font-size:11px;color:var(--text-3);cursor:pointer;font-family:'Inter',sans-serif;display:inline-flex;align-items:center;gap:6px;">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01M8 12h.01M12 12h.01M16 12h.01M7 16h10"/></svg>
+        Press ? for shortcuts
+      </button>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main">
+
+    <!-- DASHBOARD PANEL -->
+    <section class="panel active" id="panel-home">
+      <div class="panel-hd">
+        <h1 class="panel-title" id="dashTtl">Welcome to NeuroLearn AI</h1>
+        <p class="panel-sub" id="dashSub">Your AI-powered adaptive learning companion. Set a topic in the sidebar to begin.</p>
+      </div>
+
+      <div class="dash-grid">
+        <div class="feat-card-3d" onclick="go('explainer')" role="button" tabindex="0">
+          <div class="feat-card-header">
+            <div class="feat-img-thumb"><img src="./assets/explainer.png" alt="Concept Explainer" /></div>
+            <span class="feat-badge">Multi-Modal</span>
+          </div>
+          <div>
+            <div class="feat-ttl">Concept Explainer</div>
+            <div class="feat-desc">Get any topic explained in 5 unique learning styles — ELI5, Scholar, Technical, Storytelling, and Analogy.</div>
+          </div>
+        </div>
+
+        <div class="feat-card-3d" onclick="go('graph')" role="button" tabindex="0">
+          <div class="feat-card-header">
+            <div class="feat-img-thumb"><img src="./assets/graph.png" alt="Knowledge Graph" /></div>
+            <span class="feat-badge">Interactive D3</span>
+          </div>
+          <div>
+            <div class="feat-ttl">Knowledge Graph</div>
+            <div class="feat-desc">AI generates an interactive force graph displaying core concepts, prerequisite relationships, and sub-topics.</div>
+          </div>
+        </div>
+
+        <div class="feat-card-3d" onclick="go('feynman')" role="button" tabindex="0">
+          <div class="feat-card-header">
+            <div class="feat-img-thumb"><img src="./assets/feynman.png" alt="Feynman Coach" /></div>
+            <span class="feat-badge">Gap Analysis</span>
+          </div>
+          <div>
+            <div class="feat-ttl">Feynman Coach</div>
+            <div class="feat-desc">Explain the topic in your own words — AI scores your understanding 0–100% and highlights knowledge gaps.</div>
+          </div>
+        </div>
+
+        <div class="feat-card-3d" onclick="go('quiz')" role="button" tabindex="0">
+          <div class="feat-card-header">
+            <div class="feat-img-thumb"><img src="./assets/quiz.png" alt="Adaptive Quiz" /></div>
+            <span class="feat-badge">Adaptive Engine</span>
+          </div>
+          <div>
+            <div class="feat-ttl">Adaptive Quiz</div>
+            <div class="feat-desc">Dynamic AI quizzes generated across 3 difficulty levels with instant explanations and streak tracking.</div>
+          </div>
+        </div>
+
+        <div class="feat-card-3d" onclick="go('roadmap')" role="button" tabindex="0">
+          <div class="feat-card-header">
+            <div class="feat-img-thumb"><img src="./assets/roadmap.png" alt="Study Roadmap" /></div>
+            <span class="feat-badge">Curriculum Plan</span>
+          </div>
+          <div>
+            <div class="feat-ttl">Study Roadmap Generator</div>
+            <div class="feat-desc">Enter any learning goal to receive a personalized week-by-week curriculum with milestones and daily tasks.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONCEPT EXPLAINER PANEL -->
+    <section class="panel" id="panel-explainer">
+      <div class="panel-hd">
+        <h1 class="panel-title">Concept Explainer <span class="ai-badge"><div class="ai-pulse"></div> AI Core</span></h1>
+        <p class="panel-sub">Select a learning style below — AI will craft a explanation of your active topic</p>
+      </div>
+
+      <div class="impact-callout">
+        <div class="impact-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M4.93 19.07L19.07 4.93"/></svg>
+        </div>
+        <div>AI selects the <strong>optimal explanation depth</strong> for each learning style. Multi-modal delivery improves retention by up to <strong>4× vs. single-style reading</strong>.</div>
+      </div>
+
+      <div class="style-grid" role="radiogroup" aria-label="Learning style">
+        <div class="scard active" onclick="pickStyle(this,'eli5')" role="radio" aria-checked="true" tabindex="0">
+          <div class="sicon-wrap"><svg class="ico" viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg></div>
+          <div class="snm">ELI5</div>
+        </div>
+        <div class="scard" onclick="pickStyle(this,'scholar')" role="radio" aria-checked="false" tabindex="0">
+          <div class="sicon-wrap"><svg class="ico" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>
+          <div class="snm">Scholar</div>
+        </div>
+        <div class="scard" onclick="pickStyle(this,'technical')" role="radio" aria-checked="false" tabindex="0">
+          <div class="sicon-wrap"><svg class="ico" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></div>
+          <div class="snm">Technical</div>
+        </div>
+        <div class="scard" onclick="pickStyle(this,'story')" role="radio" aria-checked="false" tabindex="0">
+          <div class="sicon-wrap"><svg class="ico" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+          <div class="snm">Storytelling</div>
+        </div>
+        <div class="scard" onclick="pickStyle(this,'analogy')" role="radio" aria-checked="false" tabindex="0">
+          <div class="sicon-wrap"><svg class="ico" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></div>
+          <div class="snm">Analogy</div>
+        </div>
+      </div>
+
+      <div class="exp-bar">
+        <button class="btn-p" id="btnExp" onclick="doExplain()">
+          <svg class="ico" viewBox="0 0 24 24"><path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M4.93 19.07L19.07 4.93"/></svg>
+          Generate Explanation
+        </button>
+        <span class="chip" id="expChip" style="display:none;"></span>
+      </div>
+
+      <div class="output-actions" id="expActions" style="display:none;">
+        <button class="btn-action" onclick="copyOutput('expOutC','expCopyBtn')" id="expCopyBtn">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          Copy
+        </button>
+      </div>
+      <div class="ai-out" id="expOut">
+        <div class="empty">
+          <div class="e-icon-wrap">
+            <svg class="ico ico-xl" viewBox="0 0 24 24"><path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M4.93 19.07L19.07 4.93"/></svg>
+          </div>
+          <div class="e-title">Ready to Explain</div>
+          <div class="e-sub">Set a topic in the sidebar, choose a style above, then click Generate.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- KNOWLEDGE GRAPH PANEL -->
+    <section class="panel" id="panel-graph">
+      <div class="panel-hd">
+        <h1 class="panel-title">Knowledge Graph <span class="ai-badge"><div class="ai-pulse"></div> AI Core</span></h1>
+        <p class="panel-sub">AI-generated interactive map of concepts. Drag nodes, scroll to zoom, click to inspect.</p>
+      </div>
+
+      <div class="impact-callout">
+        <div class="impact-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+        </div>
+        <div>AI maps <strong>prerequisite relationships</strong> and co-dependencies between concepts. Understanding the graph structure is a <strong>known predictor of deeper comprehension</strong>.</div>
+      </div>
+
+      <div class="g-bar">
+        <button class="btn-p" id="btnGraph" onclick="doGraph()">
+          <svg class="ico" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          Generate Graph
+        </button>
+        <button class="btn-o" onclick="resetSim()">↺ Reset View</button>
+        <span class="chip" id="graphChip" style="display:none;"></span>
+      </div>
+
+      <div id="gwrap">
+        <div class="empty" id="gEmpty" style="height:100%;justify-content:center;">
+          <div class="e-icon-wrap">
+            <svg class="ico ico-xl" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          </div>
+          <div class="e-title">No Graph Generated</div>
+          <div class="e-sub">Set a topic and click Generate Graph to build a live knowledge map.</div>
+        </div>
+      </div>
+
+      <div class="g-tip" id="gTip"></div>
+
+      <div class="g-legend" id="gLeg">
+        <div class="leg-i"><div class="leg-d" style="background:#e11d6a;box-shadow:0 0 8px rgba(225,29,106,0.5);"></div> Core Concept</div>
+        <div class="leg-i"><div class="leg-d" style="background:#d97706;box-shadow:0 0 8px rgba(217,119,6,0.5);"></div> Related / Application</div>
+        <div class="leg-i"><div class="leg-d" style="background:#f43f5e;box-shadow:0 0 8px rgba(244,63,94,0.5);"></div> Prerequisite</div>
+      </div>
+
+      <div class="g-info" id="gInfo" style="display:none;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <div class="g-info-ttl" id="gInfoTtl" style="margin:0;">Click any node to inspect details</div>
+          <span class="feat-badge" id="gInfoType" style="text-transform:uppercase;">Overview</span>
+        </div>
+        <div id="gInfoDesc" style="color:var(--text-2);font-size:14px;line-height:1.7;margin-bottom:14px;">Select any concept node in the graph to see its definition, prerequisite relationships, and how it connects to the overall topic.</div>
+        <div id="gInfoExtra" style="display:flex;gap:12px;flex-wrap:wrap;padding-top:12px;border-top:1px solid rgba(255,200,180,0.1);font-size:12.5px;color:var(--text-3);">
+          <span id="gInfoConn"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px;"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg><strong>Tip:</strong> Double click or drag nodes to reposition. Scroll to zoom.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- FEYNMAN COACH PANEL -->
+    <section class="panel" id="panel-feynman">
+      <div class="panel-hd">
+        <h1 class="panel-title">Feynman Coach <span class="ai-badge"><div class="ai-pulse"></div> AI Core</span></h1>
+        <p class="panel-sub">Explain the concept in your own words — AI will score your understanding and pinpoint knowledge gaps</p>
+      </div>
+
+      <div class="impact-callout">
+        <div class="impact-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <div>The Feynman Technique is scientifically proven to be the <strong>most effective method for identifying knowledge gaps</strong>. AI scores you in real-time and tells you exactly what to study next.</div>
+      </div>
+
+      <div class="card" style="margin-bottom:22px;padding:20px;">
+        <div class="fsteps">
+          <div class="fstep"><div class="fnum">1</div><div class="ftxt">Choose a Concept</div></div>
+          <div class="fstep"><div class="fnum">2</div><div class="ftxt">Explain Simply</div></div>
+          <div class="fstep"><div class="fnum">3</div><div class="ftxt">AI Pinpoints Gaps</div></div>
+          <div class="fstep"><div class="fnum">4</div><div class="ftxt">Review &amp; Master</div></div>
+        </div>
+      </div>
+
+      <label style="font-size:13.5px;font-weight:700;color:var(--text-2);display:block;margin-bottom:10px;" for="fTA">
+        Your Explanation <span style="color:var(--text-3);font-weight:400;">(write as if teaching someone new to the topic)</span>
+      </label>
+      <textarea class="f-ta" id="fTA" placeholder="Start explaining here…&#10;&#10;Don't look anything up — just write what you understand. Include examples and analogies if possible." aria-label="Your explanation"></textarea>
+
+      <div class="f-bar">
+        <button class="btn-p" id="btnFeyn" onclick="doFeynman()">
+          <svg class="ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          Analyze My Understanding
+        </button>
+        <span class="chip" id="feynChip" style="display:none;"></span>
+      </div>
+
+      <!-- Radial score ring SVG defs -->
+      <svg style="position:absolute;width:0;height:0;overflow:hidden;" aria-hidden="true">
+        <defs>
+          <linearGradient id="rg" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#7c3aed"/>
+            <stop offset="100%" stop-color="#06b6d4"/>
+          </linearGradient>
+        </defs>
+      </svg>
+
+      <div class="score-row" id="scoreRow">
+        <div class="ring-wrap">
+          <svg viewBox="0 0 76 76" width="80" height="80">
+            <circle class="ring-bg" cx="38" cy="38" r="35"/>
+            <circle class="ring-fill" cx="38" cy="38" r="35" id="rArc"/>
+          </svg>
+          <div class="ring-num" id="rNum">0%</div>
+        </div>
+        <div class="score-info">
+          <div class="score-lbl" id="sLbl">Understanding Score</div>
+          <div class="score-bar"><div class="score-fill" id="sFill"></div></div>
+          <div class="score-hint" id="sHint">Awaiting analysis…</div>
+        </div>
+      </div>
+
+      <div class="ai-out" id="feynOut" style="display:none;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+          <div style="font-size:11.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3);">AI Coach Feedback</div>
+          <button class="btn-action" onclick="copyOutput('feynOutC','feynCopyBtn')" id="feynCopyBtn">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            Copy
+          </button>
+        </div>
+        <div id="feynOutC"></div>
+      </div>
+    </section>
+
+    <!-- ADAPTIVE QUIZ PANEL -->
+    <section class="panel" id="panel-quiz">
+      <div class="panel-hd">
+        <h1 class="panel-title">Adaptive Quiz <span class="ai-badge"><div class="ai-pulse"></div> AI Core</span></h1>
+        <p class="panel-sub">AI-generated questions that adapt to your target difficulty level</p>
+      </div>
+
+      <div class="impact-callout">
+        <div class="impact-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        </div>
+        <div>Adaptive testing targets your <strong>Zone of Proximal Development</strong> — questions are calibrated to be just hard enough. AI tracks wrong answers and generates a <strong>personalized study recommendation</strong>.</div>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-c">
+          <div class="stat-v" id="qC">0</div>
+          <div class="stat-l"><svg class="ico" style="color:var(--emerald);" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Correct</div>
+        </div>
+        <div class="stat-c">
+          <div class="stat-v" id="qT">0</div>
+          <div class="stat-l"><svg class="ico" style="color:var(--cyan-l);" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Answered</div>
+        </div>
+        <div class="stat-c">
+          <div class="stat-v" id="qS">0</div>
+          <div class="stat-l"><svg class="ico" style="color:var(--pink);" viewBox="0 0 24 24"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 3.5z"/></svg> Streak</div>
+        </div>
+      </div>
+
+      <div class="diff-row" role="group" aria-label="Difficulty">
+        <button class="diff-b active" id="diff-easy" onclick="pickDiff('easy')">Easy</button>
+        <button class="diff-b" id="diff-medium" onclick="pickDiff('medium')">Medium</button>
+        <button class="diff-b" id="diff-hard" onclick="pickDiff('hard')">Hard</button>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:24px;flex-wrap:wrap;">
+        <button class="btn-p" id="btnQuiz" onclick="startQuiz()">
+          <svg class="ico" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          Start Quiz
+        </button>
+        <span class="chip" id="quizChip" style="display:none;"></span>
+      </div>
+
+      <div id="qEmpty" class="empty" style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-xl);">
+        <div class="e-icon-wrap">
+          <svg class="ico ico-xl" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        </div>
+        <div class="e-title">Ready for a Challenge?</div>
+        <div class="e-sub">Set your topic, pick a difficulty, then click Start Quiz.</div>
+      </div>
+
+      <div id="qArea" style="display:none;">
+        <div class="quiz-c">
+          <div class="q-meta">
+            <div class="q-prog" id="qProg">Question 1 of 5</div>
+            <div class="q-badge" id="qBadge">Score: 0</div>
+          </div>
+          <div class="q-text" id="qText">Loading…</div>
+          <div class="opts" id="optsDiv"></div>
+          <div class="q-exp" id="qExp"></div>
+          <button class="btn-next" id="btnNext" onclick="nextQ()">Next Question →</button>
+        </div>
+        <!-- Mastery Score Card (shown after quiz ends) -->
+        <div class="mastery-card" id="masteryCard" style="display:none;"></div>
+      </div>
+    </section>
+
+    <!-- STUDY ROADMAP PANEL -->
+    <section class="panel" id="panel-roadmap">
+      <div class="panel-hd">
+        <h1 class="panel-title">Study Roadmap <span class="ai-badge"><div class="ai-pulse"></div> AI Core</span></h1>
+        <p class="panel-sub">Enter any learning goal — AI crafts your personalized week-by-week curriculum</p>
+      </div>
+
+      <div class="impact-callout">
+        <div class="impact-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        </div>
+        <div>AI structures your learning with <strong>spaced repetition principles</strong> baked into the weekly schedule. Structured study plans increase goal completion rates by <strong>over 2×</strong>.</div>
+      </div>
+
+      <div class="rm-row">
+        <input class="rm-in" id="rmGoal" placeholder="e.g. 'Master Machine Learning in 6 weeks' · 'Learn Spanish A1→B2' · 'Become a full-stack developer'" aria-label="Learning goal" />
+        <button class="btn-p" id="btnRm" onclick="doRoadmap()">
+          <svg class="ico" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+          Generate Curriculum
+        </button>
+      </div>
+
+      <div class="output-actions" id="rmActions" style="display:none;">
+        <button class="btn-action" onclick="copyOutput('rmOutC','rmCopyBtn')" id="rmCopyBtn">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          Copy
+        </button>
+        <button class="btn-action" onclick="downloadRoadmap()">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Download
+        </button>
+      </div>
+      <div class="ai-out" id="rmOut">
+        <div id="rmOutC" style="display:none;"></div>
+        <div class="empty">
+          <div class="e-icon-wrap">
+            <svg class="ico ico-xl" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+          </div>
+          <div class="e-title">Your Roadmap Awaits</div>
+          <div class="e-sub">Type a learning goal above and click Generate for a personalized study plan.</div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+'use strict';
+
+/* ─── STATE ─────────────────────────────────────────── */
+const DEFAULT_KEY = '';
+let provider = 'openrouter';
+let apiKey   = localStorage.getItem('nl_key_openrouter') || localStorage.getItem('nl_key') || '';
+let topic    = 'Quantum Computing';
+let style    = 'eli5';
+let diff     = 'easy';
+let quiz     = [];
+let qIdx     = 0;
+let qOk      = 0;
+let qStreak  = 0;
+let qDone    = false;
+let gSim     = null;
+let qWrong   = [];
+
+/* ─── SESSION STATS ─────────────────────────────────── */
+const session = {
+  topics: new Set(),
+  quizzes: 0,
+  quizScores: [],
+  feynmanScores: [],
+  update() {
+    document.getElementById('ssTopics').textContent  = this.topics.size;
+    document.getElementById('ssQuizzes').textContent = this.quizzes;
+    const avgQ = this.quizScores.length ? Math.round(this.quizScores.reduce((a,b)=>a+b,0)/this.quizScores.length) : null;
+    const avgF = this.feynmanScores.length ? Math.round(this.feynmanScores.reduce((a,b)=>a+b,0)/this.feynmanScores.length) : null;
+    document.getElementById('ssScore').textContent   = avgQ !== null ? avgQ + '%' : '\u2014';
+    document.getElementById('ssFeynman').textContent = avgF !== null ? avgF + '%' : '\u2014';
+    const all = [...this.quizScores, ...this.feynmanScores];
+    const mastery = all.length ? Math.round(all.reduce((a,b)=>a+b,0)/all.length) : 0;
+    document.getElementById('ssMastery').textContent = mastery + '%';
+    document.getElementById('ssMasteryBar').style.width = mastery + '%';
+  }
+};
+
+/* ─── INIT ──────────────────────────────────────────── */
+window.addEventListener('DOMContentLoaded', () => {
+  setTopicInitial();
+  updatePill();
+  document.querySelectorAll('.nav-item').forEach(el =>
+    el.addEventListener('keydown', e => { if(e.key==='Enter'||e.key===' ') el.click(); })
+  );
+  // Keyboard shortcuts
+  document.addEventListener('keydown', e => {
+    const tag = document.activeElement.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+    if (e.key === '?') { e.preventDefault(); document.getElementById('kbOverlay').classList.add('show'); return; }
+    if (e.key === 'Escape') { closeKb(); document.getElementById('apiModal').classList.remove('show'); return; }
+    const nav = {'1':'home','2':'explainer','3':'graph','4':'feynman','5':'quiz','6':'roadmap'};
+    if (nav[e.key]) go(nav[e.key]);
+  });
+});
+
+function setTopicInitial() {
+  const v = document.getElementById('topicIn').value.trim();
+  if (v) {
+    topic = v;
+    ['expChip','graphChip','feynChip','quizChip'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) { el.textContent = 'Topic: ' + topic; el.style.display = 'inline-flex'; }
+    });
+  }
+}
+
+/* ─── MODAL & PROVIDER ─────────────────────────────── */
+function openModal() {
+  document.getElementById('apiModal').classList.add('show');
+  setProvider();
+}
+
+function setProvider() {
+  provider = 'openrouter';
+  const el = document.getElementById('prov-openrouter');
+  if (el) el.classList.add('active');
+  const input = document.getElementById('mkeyIn');
+  if (input) {
+    input.value = apiKey;
+    input.placeholder = 'sk-or-v1-… (OpenRouter Key)';
+  }
+}
+
+document.getElementById('mcancel').onclick = () => document.getElementById('apiModal').classList.remove('show');
+document.getElementById('msave').onclick   = saveKey;
+document.getElementById('mkeyIn').addEventListener('keydown', e => { if(e.key==='Enter') saveKey(); });
+
+function saveKey() {
+  const k = document.getElementById('mkeyIn').value.trim();
+  if(!k){ toast('Paste a valid API key','w'); return; }
+  apiKey = k;
+  provider = 'openrouter';
+  localStorage.setItem('nl_prov', 'openrouter');
+  localStorage.setItem('nl_key_openrouter', k);
+  document.getElementById('apiModal').classList.remove('show');
+  updatePill();
+  toast('AI Connected (OpenRouter)', 'ok');
+}
+
+function updatePill() {
+  const dot = document.getElementById('apiDot');
+  const txt = document.getElementById('apiTxt');
+  if (apiKey) {
+    if (dot) dot.className = 'api-dot on';
+    if (txt) txt.textContent = 'OpenRouter Connected';
+  } else {
+    if (dot) dot.className = 'api-dot';
+    if (txt) txt.textContent = 'Connect OpenRouter AI';
+  }
+}
+
+/* ─── NAVIGATION ────────────────────────────────────── */
+function go(name) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  document.getElementById('nav-'+name).classList.add('active');
+}
+
+/* ─── TOPIC MANAGEMENT ─────────────────────────────── */
+function setTopic() {
+  const v = document.getElementById('topicIn').value.trim();
+  if(!v){ toast('Enter a topic first','w'); return; }
+  topic = v;
+  ['expChip','graphChip','feynChip','quizChip'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.textContent = 'Topic: ' + topic; el.style.display = 'inline-flex'; }
+  });
+  document.getElementById('dashTtl').textContent = 'Exploring: ' + topic;
+  document.getElementById('dashSub').textContent = 'Choose a feature below to start learning.';
+  toast('Topic updated: ' + topic, 'ok');
+  go('home');
+}
+
+document.getElementById('topicIn').addEventListener('keydown', e => {
+  if (e.key==='Enter' && !e.shiftKey) { e.preventDefault(); setTopic(); }
+});
+
+/* ─── AI ENGINE (LIVE API) ─── */
+async function aiCall(prompt, json=false, featureType='general') {
+  if (!apiKey) {
+    openModal();
+    toast('Please connect your OpenRouter API key to use AI features', 'w');
+    throw new Error('API key required. Please click Connect OpenRouter AI in top right.');
+  }
+  const FREE_MODELS = ['openrouter/auto'];
+
+  const sysMsg = json
+    ? 'You are a precise AI assistant. Return ONLY raw valid JSON with no markdown, no explanation, no code fences. Output must be parseable by JSON.parse() directly.'
+    : 'You are NeuroLearn AI, an expert educational assistant. Respond in rich markdown with clear headings and structure.';
+
+  let lastError = null;
+
+  for (const model of FREE_MODELS) {
+    try {
+      const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+          'HTTP-Referer': window.location.href,
+          'X-Title': 'NeuroLearn AI'
+        },
+        body: JSON.stringify({
+          model,
+          messages: [
+            { role: 'system', content: sysMsg },
+            { role: 'user', content: prompt }
+          ],
+          temperature: 0.7,
+          max_tokens: 1000
+        })
+      });
+
+      if (res.status === 401) {
+        toast('❌ Invalid API key — check your OpenRouter key and try again.', 'w');
+        throw new Error('Invalid API key (401)');
+      }
+      if (res.status === 402) {
+        toast('❌ OpenRouter: No credits. Add free credits at openrouter.ai', 'w');
+        throw new Error('No credits (402)');
+      }
+      if (res.status === 429) {
+        lastError = new Error(`Rate limited on ${model}`);
+        continue;
+      }
+      if (!res.ok) {
+        lastError = new Error(`OpenRouter HTTP ${res.status} on ${model}`);
+        continue;
+      }
+
+      const data = await res.json();
+      if (data.error) {
+        lastError = new Error(data.error.message || 'Model error');
+        continue;
+      }
+
+      const txt = (data.choices?.[0]?.message?.content || '').trim();
+      if (!txt) {
+        lastError = new Error('Empty response from model');
+        continue;
+      }
+
+      if (json) {
+        try {
+          const cleaned = txt.replace(/```json\s*/gi,'').replace(/```\s*/g,'').trim();
+          const jsonMatch = cleaned.match(/(\[[\s\S]*\]|\{[\s\S]*\})/);
+          return JSON.parse(jsonMatch ? jsonMatch[1] : cleaned);
+        } catch {
+          lastError = new Error('Model returned invalid JSON');
+          continue;
+        }
+      }
+      return txt;
+
+    } catch(e) {
+      if (e.message.includes('401') || e.message.includes('402')) throw e;
+      lastError = e;
+    }
+  }
+
+  const msg = lastError?.message || 'All models failed';
+  toast(`⚠️ AI Error: ${msg}. Check console for details.`, 'w');
+  console.error('[NeuroLearn AI] API failed:', lastError);
+  throw new Error(msg);
+}
+/* ─── EXPLAINER ─────────────────────────────────────── */
+const STYLES = {
+  eli5:     "Explain Like I'm 5 — simple words, relatable analogies",
+  scholar:  'academic scholarly style — structured, technical depth',
+  technical:'technical expert style — precise definitions, implementation details',
+  story:    'narrative storytelling — engaging story with characters and resolution',
+  analogy:  'analogy-based teaching — map every part to familiar things'
+};
+
+function pickStyle(el, s) {
+  document.querySelectorAll('.scard').forEach(c => { c.classList.remove('active'); c.setAttribute('aria-checked','false'); });
+  el.classList.add('active'); el.setAttribute('aria-checked','true'); style = s;
+}
+
+async function doExplain() {
+  if(!topic){ toast('Set a topic first','w'); return; }
+  session.topics.add(topic); session.update();
+  const out = document.getElementById('expOut');
+  const btn = document.getElementById('btnExp');
+  document.getElementById('expActions').style.display='none';
+  btn.disabled = true;
+  thinkingLoader(out, ['Analyzing concept domain...','Structuring learning style...','Synthesizing multi-modal explanation...']);
+  try {
+    const md = await aiCall(
+      `Explain "${topic}" using the ${STYLES[style]}.`,
+      false,
+      'explainer'
+    );
+    if(out._thinkInterval) clearInterval(out._thinkInterval);
+    out.innerHTML = `<div id="expOutC">${marked.parse(md)}</div>`;
+    document.getElementById('expActions').style.display='flex';
+  } catch(e){ err(out,e.message); } finally { btn.disabled=false; }
+}
+
+/* ─── KNOWLEDGE GRAPH ───────────────────────────────── */
+async function doGraph() {
+  if(!topic){ toast('Set a topic first','w'); return; }
+  session.topics.add(topic); session.update();
+  const btn = document.getElementById('btnGraph'); btn.disabled=true;
+  const wrap = document.getElementById('gwrap');
+  thinkingLoader(wrap, ['Analyzing core concepts for ' + topic + '...', 'Mapping prerequisite relationships...', 'Building interactive D3 force layout...']);
+  try {
+    let data = await aiCall(
+      `You are a Knowledge Graph generator. Generate an interactive knowledge graph for "${topic}".
+
+Return ONLY a valid JSON object with no extra text or markdown fences. The JSON must have:
+- "nodes": Array of 6 to 10 objects, each with:
+    "id": string (lowercase_snake_case id)
+    "label": string (short title)
+    "type": "core" | "related" | "prerequisite"
+    "description": string (short explanation)
+- "links": Array of relationship objects, each with:
+    "source": string (node id)
+    "target": string (node id)
+    "label": string (short relationship name, e.g. "requires", "part of", "leads to")
+
+Example:
+{"nodes":[{"id":"n1","label":"Concept 1","type":"core","description":"Desc..."}],"links":[{"source":"n1","target":"n1","label":"rel"}]}
+
+Make the concepts specifically about "${topic}".`,
+      true,
+      'graph'
+    );
+    if(wrap._thinkInterval) clearInterval(wrap._thinkInterval);
+    data = normalizeGraph(data);
+    buildGraph(data);
+    document.getElementById('gLeg').style.display='flex';
+    document.getElementById('gInfo').style.display='block';
+  } catch(e) {
+    if(wrap._thinkInterval) clearInterval(wrap._thinkInterval);
+    console.warn("AI Graph error, using dynamic generator:", e);
+    const data = normalizeGraph(null);
+    buildGraph(data);
+    document.getElementById('gLeg').style.display='flex';
+    document.getElementById('gInfo').style.display='block';
+  } finally { btn.disabled=false; }
+}
+
+function normalizeGraph(data) {
+  let nodes = [];
+  let links = [];
+
+  if (data && typeof data === 'object') {
+    const root = data.graph || data.knowledge_graph || data.data || data;
+    nodes = Array.isArray(root.nodes) ? root.nodes : (Array.isArray(root.concepts) ? root.concepts : (Array.isArray(root.topics) ? root.topics : []));
+    links = Array.isArray(root.links) ? root.links : (Array.isArray(root.relationships) ? root.relationships : (Array.isArray(root.edges) ? root.edges : []));
+  }
+
+  if (nodes.length === 0) {
+    // Minimal inline fallback when the AI returns no nodes
+    const label = topic || 'Topic';
+    return {
+      nodes: [
+        { id: 'core', label, type: 'core', description: `Central concept: ${label}` },
+        { id: 'sub1', label: 'Key Concept A', type: 'related', description: `A key aspect of ${label}` },
+        { id: 'sub2', label: 'Key Concept B', type: 'related', description: `Another aspect of ${label}` }
+      ],
+      links: [
+        { source: 'core', target: 'sub1', label: 'includes' },
+        { source: 'core', target: 'sub2', label: 'includes' }
+      ]
+    };
+  }
+
+  const validNodes = nodes.map((n, i) => {
+    const id = (n.id || n.name || n.label || `node_${i}`).toString().toLowerCase().replace(/\s+/g, '_');
+    const label = n.label || n.name || n.id || `Concept ${i+1}`;
+    const type = (n.type || (i === 0 ? 'core' : (i % 2 === 0 ? 'related' : 'prerequisite'))).toLowerCase();
+    const description = n.description || n.desc || `Key concept relating to ${topic}.`;
+    return { id, label, type, description };
+  });
+
+  const nodeMap = new Set(validNodes.map(n => n.id));
+
+  const validLinks = links.map(l => {
+    const source = (l.source || l.from || '').toString().toLowerCase().replace(/\s+/g, '_');
+    const target = (l.target || l.to || '').toString().toLowerCase().replace(/\s+/g, '_');
+    const label = l.label || l.relationship || l.relation || 'relates to';
+    return { source, target, label };
+  }).filter(l => nodeMap.has(l.source) && nodeMap.has(l.target));
+
+  if (validNodes.length > 0 && validLinks.length === 0) {
+    // Generate fallback links connecting to central node
+    const coreId = validNodes[0].id;
+    for (let i = 1; i < validNodes.length; i++) {
+      validLinks.push({ source: coreId, target: validNodes[i].id, label: 'connects to' });
+    }
+  }
+
+  return { nodes: validNodes, links: validLinks };
+}
+
+function buildGraph(data) {
+  const wrap = document.getElementById('gwrap');
+  wrap.innerHTML = '';
+  const W = wrap.clientWidth||800, H = wrap.clientHeight||540;
+  const svg = d3.select('#gwrap').append('svg').attr('width',W).attr('height',H);
+
+  const defs = svg.append('defs');
+  const gf = defs.append('filter').attr('id','glow3');
+  gf.append('feGaussianBlur').attr('stdDeviation','3.5').attr('result','b');
+  const fm = gf.append('feMerge');
+  fm.append('feMergeNode').attr('in','b');
+  fm.append('feMergeNode').attr('in','SourceGraphic');
+  defs.append('marker').attr('id','arr').attr('viewBox','0 -5 10 10').attr('refX',22).attr('refY',0)
+    .attr('markerWidth',6).attr('markerHeight',6).attr('orient','auto')
+    .append('path').attr('d','M0,-5L10,0L0,5').attr('fill','rgba(225,29,106,.45)');
+
+  const g = svg.append('g');
+  svg.call(d3.zoom().scaleExtent([.25,3]).on('zoom', e => g.attr('transform',e.transform)));
+
+  const COL = {core:'#e11d6a',related:'#d97706',prerequisite:'#f43f5e'};
+  const RAD = {core:15,related:10,prerequisite:11};
+  const ids = new Set(data.nodes.map(n=>n.id));
+  data.links = data.links.filter(l=>ids.has(l.source)&&ids.has(l.target));
+
+  const sim = d3.forceSimulation(data.nodes)
+    .force('link',d3.forceLink(data.links).id(d=>d.id).distance(110))
+    .force('charge',d3.forceManyBody().strength(-320))
+    .force('center',d3.forceCenter(W/2,H/2))
+    .force('collision',d3.forceCollide().radius(38));
+  gSim = sim;
+
+  const link = g.append('g').selectAll('line').data(data.links).join('line')
+    .attr('stroke','rgba(225,29,106,.30)').attr('stroke-width',1.6).attr('marker-end','url(#arr)');
+  const lLbl = g.append('g').selectAll('text').data(data.links).join('text')
+    .attr('fill','rgba(201,168,176,.55)').attr('font-size','9.5px').attr('font-family','Inter,sans-serif').attr('text-anchor','middle')
+    .text(d=>d.label||'');
+
+  const node = g.append('g').selectAll('g').data(data.nodes).join('g').attr('cursor','pointer')
+    .call(d3.drag()
+      .on('start',(e,d)=>{ if(!e.active) sim.alphaTarget(.3).restart(); d.fx=d.x; d.fy=d.y; })
+      .on('drag', (e,d)=>{ d.fx=e.x; d.fy=e.y; })
+      .on('end',  (e,d)=>{ if(!e.active) sim.alphaTarget(0); d.fx=null; d.fy=null; })
+    )
+    .on('click',(e,d)=>{
+      document.getElementById('gInfo').style.display = 'block';
+      document.getElementById('gInfoTtl').textContent = d.label;
+      document.getElementById('gInfoType').textContent = (d.type || 'Concept').toUpperCase();
+      document.getElementById('gInfoDesc').textContent = d.description || `Key concept in ${topic}.`;
+
+      // Find connected nodes
+      const conns = data.links
+        .filter(l => (l.source.id === d.id || l.source === d.id || l.target.id === d.id || l.target === d.id))
+        .map(l => {
+          const isSource = (l.source.id === d.id || l.source === d.id);
+          const other = isSource ? (l.target.label || l.target) : (l.source.label || l.source);
+          const rel = l.label || 'connects to';
+          return isSource ? `➔ <strong>${rel}</strong> ${other}` : `⬅ <strong>${rel}</strong> by ${other}`;
+        });
+
+      const linkSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#e11d6a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px;"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>`;
+      const tipSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`;
+      document.getElementById('gInfoConn').innerHTML = conns.length > 0
+        ? `${linkSvg}<strong>Connections (${conns.length}):</strong> ${conns.join(' &nbsp;|&nbsp; ')}`
+        : `${tipSvg}<strong>Tip:</strong> Core concept in ${topic}.`;
+
+      // Visual highlight in D3 graph
+      node.style('opacity', n => (n.id === d.id ? 1 : 0.45));
+      node.select('circle').attr('stroke-width', n => (n.id === d.id ? 4 : 2));
+      link.style('stroke', l => (l.source.id === d.id || l.target.id === d.id ? '#e11d6a' : 'rgba(225,29,106,.15)'))
+          .style('stroke-width', l => (l.source.id === d.id || l.target.id === d.id ? 2.5 : 1));
+    })
+    .on('mouseover',(e,d)=>{
+      const t=document.getElementById('gTip');
+      t.innerHTML=`<strong style="color:var(--text-1)">${d.label}</strong><br><em style="font-size:11px;color:var(--violet-l)">${(d.type||'').toUpperCase()}</em>`;
+      t.style.opacity='1';
+      const r=wrap.getBoundingClientRect();
+      t.style.left=(e.clientX-r.left+12)+'px'; t.style.top=(e.clientY-r.top-14)+'px';
+    })
+    .on('mouseleave',()=>{ document.getElementById('gTip').style.opacity='0'; });
+
+  node.append('circle')
+    .attr('r',d=>RAD[d.type]||10).attr('fill',d=>COL[d.type]||'#e11d6a').attr('fill-opacity',.88)
+    .attr('stroke',d=>COL[d.type]||'#e11d6a').attr('stroke-width',2).attr('stroke-opacity',.42)
+    .attr('filter','url(#glow3)');
+  node.append('text')
+    .attr('dy','2.3em').attr('text-anchor','middle')
+    .attr('fill','#f0f4ff').attr('font-size','10.5px').attr('font-family','Inter,sans-serif').attr('font-weight','500')
+    .text(d=>d.label.length>18?d.label.slice(0,16)+'…':d.label);
+
+  sim.on('tick',()=>{
+    link.attr('x1',d=>d.source.x).attr('y1',d=>d.source.y).attr('x2',d=>d.target.x).attr('y2',d=>d.target.y);
+    lLbl.attr('x',d=>(d.source.x+d.target.x)/2).attr('y',d=>(d.source.y+d.target.y)/2);
+    node.attr('transform',d=>`translate(${d.x},${d.y})`);
+  });
+}
+function resetSim(){ if(gSim) gSim.alpha(.6).restart(); }
+
+/* ─── FEYNMAN ───────────────────────────────────────── */
+async function doFeynman() {
+  if(!topic){ toast('Set a topic first','w'); return; }
+  const txt = document.getElementById('fTA').value.trim();
+  if(txt.length < 5){ toast('Write an explanation first','w'); return; }
+  session.topics.add(topic);
+  const btn=document.getElementById('btnFeyn'); btn.disabled=true;
+  const out=document.getElementById('feynOut'); out.style.display='block';
+  thinkingLoader(out, ['Parsing user explanation...','Cross-referencing domain facts...','Identifying knowledge gaps & scoring...']);
+  try {
+    const md = await aiCall(
+      `You are the Feynman Technique Coach evaluating a student's explanation of "${topic}".
+
+Student's Explanation:
+"${txt}"
+
+STRICT SCORING RUBRIC:
+- The VERY FIRST LINE of your response MUST be strictly in this format: **Score: X%** where X is an integer 0-100.
+- 0-35%: Extremely short (e.g. 1 short vague sentence), superficial, or missing fundamental mechanics and core concepts.
+- 36-65%: Basic partial intuition, but missing technical details, rules, or core mechanisms.
+- 66-85%: Good thorough explanation, covering main ideas with simple analogies.
+- 86-100%: Exceptional comprehensive explanation, simple language, accurate mechanics, zero jargon, and clear examples.
+
+Evaluate rigorously based on explanation length and conceptual depth. Short 1-sentence answers MUST receive a score between 15% and 30%.`,
+      false,
+      'feynman'
+    );
+    if(out._thinkInterval) clearInterval(out._thinkInterval);
+
+    const m = md.match(/\*\*Score:\s*(\d+)%?\*\*|Score:\s*(\d+)%?/i);
+    let sc = 0;
+    if (m) {
+      sc = parseInt(m[1] || m[2]);
+    } else {
+      // Word-count depth heuristic fallback
+      const words = txt.split(/\s+/).filter(Boolean).length;
+      if (words >= 50) sc = Math.min(95, 80 + Math.floor((words - 50) / 3));
+      else if (words >= 25) sc = 60 + Math.floor((words - 25) * 0.8);
+      else if (words >= 10) sc = 40 + Math.floor((words - 10) * 1.2);
+      else sc = Math.max(15, words * 4);
+    }
+    sc = Math.min(100, Math.max(0, sc));
+
+    session.feynmanScores.push(sc); session.update();
+
+    document.getElementById('scoreRow').style.display='flex';
+    document.getElementById('rNum').textContent=sc+'%';
+
+    const circ=2*Math.PI*35;
+    const arc=document.getElementById('rArc');
+    arc.style.strokeDasharray=circ; arc.style.strokeDashoffset=circ;
+    setTimeout(()=>arc.style.strokeDashoffset=circ*(1-sc/100),80);
+    document.getElementById('sFill').style.width='0%';
+    setTimeout(()=>document.getElementById('sFill').style.width=sc+'%',80);
+
+    document.getElementById('sLbl').textContent  = sc>=80?'Excellent Understanding!':sc>=60?'Good Progress':sc>=40?'Keep Practicing':'Just Starting';
+    document.getElementById('sHint').textContent = sc>=80?'Strong grasp!':sc>=60?'A bit more review and you\'ll nail it.':sc>=40?'Focus on the gaps below.':'Study the gaps and revisit.';
+
+    const clean = md.replace(/\*\*Score:\s*\d+%?\*\*\s*\n?|Score:\s*\d+%?\s*\n?/gi,'');
+    out.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <div style="font-size:11.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3);">AI Coach Feedback</div>
+      <button class="btn-action" onclick="copyOutput('feynOutC','feynCopyBtn')" id="feynCopyBtn">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        Copy
+      </button>
+    </div><div id="feynOutC">${marked.parse(clean)}</div>`;
+  } catch(e){ err(out,e.message); } finally { btn.disabled=false; }
+}
+
+/* ─── QUIZ ──────────────────────────────────────────── */
+function pickDiff(d) {
+  document.querySelectorAll('.diff-b').forEach(b=>b.classList.remove('active'));
+  document.getElementById('diff-'+d).classList.add('active'); diff=d;
+}
+
+async function startQuiz() {
+  if(!topic){ toast('Set a topic first','w'); return; }
+  session.topics.add(topic);
+  const btn=document.getElementById('btnQuiz'); btn.disabled=true; btn.textContent='Generating…';
+  document.getElementById('qEmpty').style.display='none';
+  document.getElementById('qArea').style.display='none';
+  const mCard = document.getElementById('masteryCard'); if(mCard) mCard.style.display='none';
+  try {
+    quiz = await aiCall(
+      `You are a quiz generator. Generate exactly 5 multiple-choice questions about "${topic}" at ${diff} difficulty level.
+
+Return ONLY a valid JSON array with no extra text. Each item must have:
+- "question": string (the question text)
+- "options": array of exactly 4 strings (the answer choices)
+- "answer": number (0-indexed position of the correct answer)
+- "explanation": string (why the correct answer is right)
+
+Example format:
+[{"question":"...","options":["A","B","C","D"],"answer":0,"explanation":"..."}]
+
+All questions MUST be specifically about "${topic}". Do not use placeholder topics.`,
+      true,
+      'quiz'
+    );
+    if(!Array.isArray(quiz)||quiz.length===0) throw new Error('Invalid quiz data');
+    quiz = normalizeQuiz(quiz);
+    qIdx=0; qOk=0; qStreak=0; qWrong=[]; updStats();
+    document.getElementById('qArea').style.display='block';
+    const qc = document.querySelector('.quiz-c'); if(qc) qc.style.display='block';
+    renderQ();
+  } catch(e){ toast(e.message,'w'); document.getElementById('qEmpty').style.display='flex'; }
+  finally { btn.disabled=false; btn.textContent='Start Quiz'; }
+}
+
+function normalizeQuiz(data) {
+  if (!Array.isArray(data)) return [];
+  return data.map(q => {
+    let targetIdx = 0;
+    const rawAns = q.correct !== undefined ? q.correct : (q.answer !== undefined ? q.answer : q.correctIndex);
+    const options = Array.isArray(q.options) ? q.options : ['Option A', 'Option B', 'Option C', 'Option D'];
+
+    if (typeof rawAns === 'number') {
+      targetIdx = rawAns;
+      // If AI returned 1-4 for 4 options, convert to 0-3
+      if (targetIdx >= 1 && targetIdx <= 4 && targetIdx === options.length) {
+        targetIdx = targetIdx - 1;
+      }
+    } else if (typeof rawAns === 'string') {
+      const trimmed = rawAns.trim();
+      const letterMatch = trimmed.match(/^[A-Da-d]$/);
+      if (letterMatch) {
+        targetIdx = letterMatch[0].toUpperCase().charCodeAt(0) - 65;
+      } else if (!isNaN(parseInt(trimmed))) {
+        const num = parseInt(trimmed);
+        targetIdx = (num >= 1 && num <= 4) ? num - 1 : num;
+      } else {
+        const found = options.findIndex(opt =>
+          opt.toLowerCase().includes(trimmed.toLowerCase()) || trimmed.toLowerCase().includes(opt.toLowerCase())
+        );
+        if (found !== -1) targetIdx = found;
+      }
+    }
+
+    if (targetIdx < 0 || targetIdx >= options.length) targetIdx = 0;
+
+    return {
+      question: q.question || 'Question',
+      options: options,
+      correct: targetIdx,
+      answer: targetIdx,
+      explanation: q.explanation || 'See topic fundamentals for context.'
+    };
+  });
+}
+
+function renderQ() {
+  if(qIdx>=quiz.length){ endQuiz(); return; }
+  const q=quiz[qIdx]; qDone=false;
+  document.getElementById('qProg').textContent   = `Question ${qIdx+1} of ${quiz.length}`;
+  document.getElementById('qBadge').textContent  = `Score: ${qOk}/${quiz.length}`;
+  document.getElementById('qText').textContent   = q.question;
+  const d=document.getElementById('optsDiv'); d.innerHTML='';
+  q.options.forEach((o,i)=>{
+    const b=document.createElement('button'); b.className='opt-b'; b.id='o'+i;
+    b.innerHTML = `<span style="font-weight:700;color:var(--violet-l);">${String.fromCharCode(65+i)}.</span> <span>${o}</span>`;
+    b.onclick=()=>pick(i);
+    d.appendChild(b);
+  });
+  document.getElementById('qExp').className='q-exp';
+  document.getElementById('btnNext').className='btn-next';
+  updStats();
+}
+
+function pick(sel) {
+  if(qDone) return; qDone=true;
+  const q=quiz[qIdx];
+  const ok = (sel === q.correct || sel === q.answer);
+  q.options.forEach((_,i)=>{
+    const b=document.getElementById('o'+i); b.disabled=true;
+    if(i === q.correct || i === q.answer) b.classList.add('ok');
+    else if(i === sel && !ok) b.classList.add('bad');
+  });
+  if(ok){ qOk++; qStreak++; } else { qStreak=0; qWrong.push(q.question.slice(0,35)+'…'); }
+  const e=document.getElementById('qExp');
+  e.innerHTML= (ok?'<strong>Correct!</strong> ':'<strong>Incorrect.</strong> ') + q.explanation; e.className='q-exp on';
+  document.getElementById('btnNext').className='btn-next on'; updStats();
+}
+
+function nextQ(){ qIdx++; renderQ(); }
+
+function endQuiz() {
+  const p=Math.round(qOk/quiz.length*100);
+  const qc = document.querySelector('.quiz-c'); if(qc) qc.style.display='none';
+  showMasteryCard(p, qWrong);
+  updStats();
+}
+
+function updStats() {
+  document.getElementById('qC').textContent=qOk;
+  document.getElementById('qT').textContent=qIdx;
+  document.getElementById('qS').textContent=qStreak;
+}
+
+/* ─── ROADMAP ───────────────────────────────────────── */
+async function doRoadmap() {
+  const goal = document.getElementById('rmGoal').value.trim() || topic;
+  if(!goal){ toast('Enter a learning goal','w'); return; }
+  session.topics.add(goal); session.update();
+  const out = document.getElementById('rmOut');
+  const btn = document.getElementById('btnRm');
+  document.getElementById('rmActions').style.display = 'none';
+  btn.disabled = true;
+  thinkingLoader(out, ['Analyzing learning objectives...', 'Structuring week-by-week milestones...', 'Synthesizing curriculum with spaced repetition...']);
+  try {
+    const md = await aiCall(
+      `Create a study roadmap for: "${goal}"`,
+      false,
+      'roadmap'
+    );
+    if(out._thinkInterval) clearInterval(out._thinkInterval);
+    out.innerHTML = `<div id="rmOutC">${marked.parse(md)}</div>`;
+    document.getElementById('rmActions').style.display = 'flex';
+  } catch(e){ err(out, e.message); } finally { btn.disabled = false; }
+}
+
+/* ─── HELPERS ───────────────────────────────────────── */
+function load(el,msg) { el.style.removeProperty('display'); el.innerHTML=`<div class="loader-w"><div class="spinner"></div><div>${msg}</div></div>`; }
+function err(el,msg) { el.innerHTML=`<div class="empty"><div class="e-icon-wrap"><svg class="ico ico-xl" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div><div class="e-title">Something went wrong</div><div class="e-sub">${msg}</div><div style="margin-top:12px;font-size:12px;color:var(--text-3)">Check your OpenRouter API key and connection.</div></div>`; }
+
+let tt;
+function toast(msg,type='i') {
+  const el=document.getElementById('toast');
+  el.style.background=type==='ok'?'rgba(16,185,129,.92)':type==='w'?'rgba(245,158,11,.92)':'rgba(225,29,106,.92)';
+  el.textContent=msg; el.style.opacity='1'; el.style.transform='translateX(-50%) translateY(-2px)';
+  clearTimeout(tt); tt=setTimeout(()=>{ el.style.opacity='0'; el.style.transform='translateX(-50%) translateY(0)'; },3200);
+}
+
+/* ─── HERO SCREEN ───────────────────────────────────── */
+function closeHero() {
+  const h = document.getElementById('heroScreen');
+  // Step 1: trigger closing CSS (fade-out + scale-up)
+  h.classList.add('closing');
+
+  // Step 2: simultaneously animate the dashboard panel in
+  const dash = document.getElementById('panel-home');
+  dash.style.opacity = '0';
+  dash.style.transform = 'translateY(22px)';
+  dash.style.transition = 'opacity .55s ease .15s, transform .55s cubic-bezier(.4,0,.2,1) .15s';
+
+  setTimeout(() => {
+    h.style.display = 'none';
+    dash.style.opacity = '1';
+    dash.style.transform = 'translateY(0)';
+  }, 300);
+
+  // Step 3: clean up inline styles after transition completes
+  setTimeout(() => {
+    dash.style.transition = '';
+    dash.style.opacity = '';
+    dash.style.transform = '';
+  }, 950);
+}
+
+/* ─── KEYBOARD SHORTCUTS OVERLAY ───────────────────── */
+function closeKb(e) {
+  if (e && e.target !== document.getElementById('kbOverlay')) return;
+  document.getElementById('kbOverlay').classList.remove('show');
+}
+
+/* ─── COPY / DOWNLOAD UTILITIES ─────────────────────── */
+function copyOutput(sourceId, btnId) {
+  const el = document.getElementById(sourceId);
+  if (!el) return;
+  const text = el.innerText || el.textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById(btnId);
+    if (btn) { btn.classList.add('copied'); btn.textContent = '\u2713 Copied!'; setTimeout(() => { btn.classList.remove('copied'); btn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy'; }, 2000); }
+    toast('Copied to clipboard', 'ok');
+  }).catch(() => toast('Copy failed — try selecting text manually','w'));
+}
+
+function downloadRoadmap() {
+  const el = document.getElementById('rmOut');
+  if (!el) return;
+  const text = el.innerText || el.textContent;
+  const blob = new Blob([text], {type:'text/plain'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `NeuroLearn_Roadmap_${topic.replace(/\s+/g,'_')}.txt`;
+  a.click(); URL.revokeObjectURL(a.href);
+  toast('Roadmap downloaded!', 'ok');
+}
+
+/* ─── AI THINKING LOADER ─────────────────────────────── */
+function thinkingLoader(el, steps) {
+  el.innerHTML = `<div class="ai-thinking">
+    <div class="thinking-ring"></div>
+    <div class="thinking-steps">${
+      steps.map((s,i) => `<div class="thinking-step" style="animation-delay:${i*0.18}s">
+        <div class="step-dot"></div>${s}
+      </div>`).join('')
+    }</div>
+  </div>`;
+  // Animate steps active one by one
+  const stepEls = el.querySelectorAll('.thinking-step');
+  let i = 0;
+  const interval = setInterval(() => {
+    if (i > 0 && stepEls[i-1]) stepEls[i-1].classList.replace('active','done');
+    if (i < stepEls.length) { stepEls[i].classList.add('active'); i++; }
+    else clearInterval(interval);
+  }, 900);
+  el._thinkInterval = interval;
+}
+
+/* ─── MASTERY SCORE CARD ─────────────────────────────── */
+function showMasteryCard(score, wrongQs) {
+  const card = document.getElementById('masteryCard');
+  if (!card) return;
+  let level, cls;
+  if (score >= 90)      { level = '\ud83c\udfc6 Expert';       cls = 'expert'; }
+  else if (score >= 70) { level = '\u2b50 Scholar';      cls = 'scholar'; }
+  else if (score >= 40) { level = '\ud83d\udcd6 Apprentice'; cls = 'apprentice'; }
+  else                  { level = '\ud83c\udf31 Novice';      cls = 'novice'; }
+
+  const rec = wrongQs.length > 0
+    ? `<strong>AI Study Recommendation:</strong> Based on your answers, focus next on <em>${wrongQs.slice(0,2).join('</em> and <em>')}</em>. Try the Feynman Coach on these concepts.`
+    : `<strong>Outstanding Performance!</strong> You've demonstrated strong mastery. Try a harder difficulty or explore the Knowledge Graph to deepen connections.`;
+
+  card.innerHTML = `
+    <div class="mastery-level ${cls}">${level}</div>
+    <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:8px;">
+      <div class="mastery-score-big">${score}%</div>
+      <div style="color:var(--text-2);font-size:15px;">Final Score on <strong>${topic}</strong></div>
+    </div>
+    <div style="color:var(--text-3);font-size:13px;margin-bottom:14px;">Correct: ${qOk} / ${quiz.length} &nbsp;&nbsp;|&nbsp;&nbsp; Difficulty: ${diff.charAt(0).toUpperCase()+diff.slice(1)}</div>
+    <div class="mastery-ai-rec">${rec}</div>
+    <button class="btn-p" style="margin-top:16px;" onclick="startQuiz()">Try Again \u2192</button>
+  `;
+  card.style.display = 'block';
+  // Update session stats
+  session.quizzes++;
+  session.quizScores.push(score);
+  session.topics.add(topic);
+  session.update();
+}
+</script>
+</body>
+</html>
